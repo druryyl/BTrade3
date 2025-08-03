@@ -19,16 +19,21 @@ class FakturEntryViewModel(
     private val _faktur = MutableStateFlow<Faktur?>(null)
     val faktur: StateFlow<Faktur?> = _faktur.asStateFlow()
 
+    private var hasCreatedNewFaktur = false
+
     fun loadFaktur(fakturId: String) {
         viewModelScope.launch {
             _faktur.value = repository.getFakturById(fakturId)
+            hasCreatedNewFaktur = false
         }
     }
 
     fun createNewFaktur(context: android.content.Context) {
+        if (hasCreatedNewFaktur) return
+
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val userEmail = getUserEmail(context) ?: ""
-        _faktur.value = Faktur(
+        val newFaktur =  Faktur(
             fakturId = UUID.randomUUID().toString(),
             customerCode = "",
             customerName = "",
@@ -37,6 +42,11 @@ class FakturEntryViewModel(
             totalAmount = 0.0,
             userEmail = userEmail
         )
+        _faktur.value = newFaktur
+        hasCreatedNewFaktur = true
+
+        // Save to database immediately
+        saveFaktur(newFaktur)
     }
 
     fun updateCustomerInfo(customerCode: String, customerName: String) {
@@ -72,6 +82,11 @@ class FakturEntryViewModel(
         saveFakturAndReload(updatedFaktur)
     }
 
+    private fun saveFaktur(fakturToSave: Faktur) {
+        viewModelScope.launch {
+            repository.insertFaktur(fakturToSave)
+        }
+    }
     private fun saveFakturAndReload(fakturToSave: Faktur) {
         viewModelScope.launch {
             // Save to database

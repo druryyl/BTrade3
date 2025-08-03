@@ -28,9 +28,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -64,11 +61,14 @@ fun FakturEntryScreen(
         ?.savedStateHandle
         ?.get<String>("selected_sales_name")
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(fakturId) {
+        Log.d("FakturEntryScreen", "fakturId: $fakturId")
         if (fakturId == "new") {
             viewModel.createNewFaktur(context)
-        } else {
+            Log.d("FakturEntryScreen", "New faktur created")
+        } else if (fakturId != null) {
             fakturId?.let { viewModel.loadFaktur(it) }
+            Log.d("FakturEntryScreen", "Faktur loaded: $fakturId")
         }
     }
 
@@ -267,17 +267,6 @@ fun FakturEntryContent(
                 }
             }
         }
-
-        // Save Button
-//        Button(
-//            onClick = {
-//                onUpdateCustomer(customerCode, customerName)
-//                onUpdateSales(salesName)
-//            },
-//            modifier = Modifier.fillMaxWidth()
-//        ) {
-//            Text("Save")
-//        }
     }
 }
 
