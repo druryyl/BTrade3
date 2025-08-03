@@ -1,0 +1,40 @@
+package com.elsasa.btrade3.database
+
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import com.elsasa.btrade3.dao.FakturDao
+import com.elsasa.btrade3.dao.FakturItemDao
+import com.elsasa.btrade3.model.Faktur
+import com.elsasa.btrade3.model.FakturItem
+
+@Database(
+    entities = [Faktur::class, FakturItem::class],
+    version = 2,
+    exportSchema = false
+)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun fakturDao(): FakturDao
+    abstract fun fakturItemDao(): FakturItemDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "sales_order_database"
+                )
+                .fallbackToDestructiveMigration(false) // Add this for development
+                .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
+}

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "405920502340",
+    "project_id": "btrade3-663be",
+    "storage_bucket": "btrade3-663be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:405920502340:android:a148d7ce073fe4956b6211",
+        "android_client_info": {
+          "package_name": "com.elsasa.btrade3"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "405920502340-hgqkrfv56ebd10q0guma4l7ealrdmsu1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elsasa.btrade3",
+            "certificate_hash": "b287154838a12ee9a54a5b579b970d9fd72297af"
+          }
+        },
+        {
+          "client_id": "405920502340-odieer196drj8fd5jinppg7hnj8s8bpa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbF-xqq2C3fq7Ey4rdukEe8Q5NTjEKEmw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "405920502340-odieer196drj8fd5jinppg7hnj8s8bpa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
