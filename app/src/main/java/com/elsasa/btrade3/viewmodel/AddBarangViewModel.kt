@@ -63,8 +63,8 @@ class AddBarangViewModel(
         } else {
             _barangs.value.filter { barang ->
                 barang.brgCode.lowercase().contains(query) ||
-                        barang.brgName.lowercase().contains(query) ||
-                        barang.kategoriName.lowercase().contains(query)
+                barang.brgName.lowercase().contains(query) ||
+                barang.kategoriName.lowercase().contains(query)
             }
         }
     }
@@ -135,12 +135,7 @@ class AddBarangViewModel(
             )
 
             fakturRepository.insertFakturItem(fakturItem)
-
-            // Update total amount in faktur
             updateTotalAmount()
-//            val total = fakturRepository.calculateTotalAmount(fakturId)
-//            fakturRepository.getFakturById(fakturId)?.let { faktur ->
-//                fakturRepository.updateFaktur(faktur.copy(totalAmount = total))
         }
     }
 

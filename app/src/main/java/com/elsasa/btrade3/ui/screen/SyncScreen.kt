@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.elsasa.btrade3.repository.SyncRepository
@@ -116,7 +117,7 @@ fun SyncScreen(
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Synchronizing data...",
+                                text = "Synchronizing data...\nThis may take a few moments",
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
@@ -138,6 +139,7 @@ fun SyncScreen(
                                 text = state.message,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = Color.Green,
+                                textAlign = TextAlign.Center,
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
                         }
@@ -158,6 +160,7 @@ fun SyncScreen(
                                 text = state.message,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center,
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
                         }

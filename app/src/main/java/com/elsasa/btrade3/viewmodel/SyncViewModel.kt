@@ -18,7 +18,11 @@ class SyncViewModel(
     fun syncBarangs() {
         viewModelScope.launch {
             _syncState.value = SyncRepository.SyncResult.Loading
-            _syncState.value = syncRepository.syncBarangs()
+            try {
+                _syncState.value = syncRepository.syncBarangs()
+            } catch (e: Exception) {
+                _syncState.value = SyncRepository.SyncResult.Error("Sync failed: ${e.message}")
+            }
         }
     }
     // Initialize with a ready state so it's not stuck in loading
