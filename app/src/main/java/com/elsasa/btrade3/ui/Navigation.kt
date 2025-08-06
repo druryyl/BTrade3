@@ -10,8 +10,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.elsasa.btrade3.database.AppDatabase
+import com.elsasa.btrade3.network.NetworkModule
+import com.elsasa.btrade3.repository.BarangRepository
 import com.elsasa.btrade3.repository.FakturRepository
+import com.elsasa.btrade3.repository.NetworkRepository
 import com.elsasa.btrade3.repository.StaticDataRepository
+import com.elsasa.btrade3.repository.SyncRepository
 import com.elsasa.btrade3.ui.screen.*
 import com.elsasa.btrade3.viewmodel.*
 
@@ -25,6 +29,12 @@ fun AppNavigation(
         database.fakturDao(),
         database.fakturItemDao()
     )
+    var barangRepository = BarangRepository(
+        database.barangDao()
+    )
+    val apiService = NetworkModule.createApiService()
+    val networkRepository = NetworkRepository(apiService)
+    val syncRepository = SyncRepository(networkRepository, barangRepository)
     val staticDataRepository = StaticDataRepository()
 
     val isLoggedIn = remember { checkIfUserIsLoggedIn(context) }
@@ -95,16 +105,22 @@ fun AppNavigation(
             val fakturId = backStackEntry.arguments?.getString("fakturId") ?: ""
             val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
             val viewModel: AddBarangViewModel = viewModel(
-                factory = AddBarangViewModelFactory(fakturRepository, staticDataRepository)
+                factory = AddBarangViewModelFactory(fakturRepository, barangRepository)
             )
             AddBarangScreen(navController, viewModel, fakturId, itemId.ifEmpty { null })
         }
 
         composable("barang_selection") {
             val viewModel: AddBarangViewModel = viewModel(
-                factory = AddBarangViewModelFactory(fakturRepository, staticDataRepository)
+                factory = AddBarangViewModelFactory(fakturRepository, barangRepository)
             )
             BarangSelectionScreen(navController, viewModel)
+        }
+        composable("sync") {
+            val viewModel: SyncViewModel = viewModel(
+                factory = SyncViewModelFactory(syncRepository)
+            )
+            SyncScreen(navController, viewModel)
         }
     }
 }

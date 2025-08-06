@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elsasa.btrade3.model.Barang
 import com.elsasa.btrade3.model.FakturItem
+import com.elsasa.btrade3.repository.BarangRepository
 import com.elsasa.btrade3.repository.FakturRepository
 import com.elsasa.btrade3.repository.StaticDataRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,8 @@ import kotlinx.coroutines.launch
 
 class AddBarangViewModel(
     private val fakturRepository: FakturRepository,
-    private val staticDataRepository: StaticDataRepository
+    private val barangRepository: BarangRepository
+    //private val staticDataRepository: StaticDataRepository
 ) : ViewModel() {
     private val _fakturId = MutableStateFlow<String?>(null)
     val fakturId: StateFlow<String?> = _fakturId.asStateFlow()
@@ -44,7 +46,7 @@ class AddBarangViewModel(
 
     private fun loadBarangs() {
         viewModelScope.launch {
-            staticDataRepository.getBarangs().collect { barangList ->
+            barangRepository.getAllBarangs().collect { barangList ->
                 _barangs.value = barangList
             }
         }

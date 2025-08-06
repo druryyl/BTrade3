@@ -5,19 +5,22 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.elsasa.btrade3.dao.BarangDao
 import com.elsasa.btrade3.dao.FakturDao
 import com.elsasa.btrade3.dao.FakturItemDao
+import com.elsasa.btrade3.model.Barang
 import com.elsasa.btrade3.model.Faktur
 import com.elsasa.btrade3.model.FakturItem
 
 @Database(
-    entities = [Faktur::class, FakturItem::class],
-    version = 2,
+    entities = [Faktur::class, FakturItem::class, Barang::class],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun fakturDao(): FakturDao
     abstract fun fakturItemDao(): FakturItemDao
+    abstract fun barangDao(): BarangDao
 
     companion object {
         @Volatile
