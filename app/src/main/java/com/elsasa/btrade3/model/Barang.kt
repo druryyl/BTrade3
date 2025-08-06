@@ -4,10 +4,13 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 @Parcelize
 data class Barang(
+    val brgId: String,
     val brgCode: String,
     val brgName: String,
     val kategoriName: String,
-    val stok: Int,
-    val unitName: String,
-    val unitPrice: Double
+    val satBesar: String,
+    val satKecil: String,
+    val konversi: Int,
+    val hrgSat: Double,
+    val stok: Int
 ) : Parcelable

@@ -92,12 +92,15 @@ class AddBarangViewModel(
 
                     val barang = _barangs.value.find{ it.brgCode == item.brgCode }
                         ?: Barang(
+                            brgId = "",
                             brgCode = item.brgCode,
                             brgName = item.brgName,
                             kategoriName = "",
-                            stok = 0,
-                            unitName = item.unitName,
-                            unitPrice = item.unitPrice
+                            satBesar = "",
+                            satKecil = item.unitName,
+                            konversi = 1,
+                            hrgSat = item.unitPrice,
+                            stok = 0
                         )
 
                     _selectedBarang.value = barang
@@ -117,15 +120,15 @@ class AddBarangViewModel(
             val currentItems = fakturRepository.getFakturItemsByFakturId(fakturId).first()
             val nextNoUrut = currentItems.size + 1
 
-            val lineTotal = qty * barang.unitPrice
+            val lineTotal = qty * barang.hrgSat
             val fakturItem = FakturItem(
                 fakturId = fakturId,
                 noUrut = nextNoUrut,
                 brgCode = barang.brgCode,
                 brgName = barang.brgName,
                 qty = qty,
-                unitName = barang.unitName,
-                unitPrice = barang.unitPrice,
+                unitName = barang.satKecil,
+                unitPrice = barang.hrgSat,
                 lineTotal = lineTotal
             )
 
@@ -146,15 +149,15 @@ class AddBarangViewModel(
         val originalItem = _originalFakturItem.value ?: return
 
         viewModelScope.launch {
-            val lineTotal = qty * barang.unitPrice
+            val lineTotal = qty * barang.hrgSat
             val fakturItem = FakturItem(
                 fakturId = fakturId,
                 noUrut = originalItem.noUrut,
                 brgCode = barang.brgCode,
                 brgName = barang.brgName,
                 qty = qty,
-                unitName = barang.unitName,
-                unitPrice = barang.unitPrice,
+                unitName = barang.satKecil,
+                unitPrice = barang.hrgSat,
                 lineTotal = lineTotal
             )
 

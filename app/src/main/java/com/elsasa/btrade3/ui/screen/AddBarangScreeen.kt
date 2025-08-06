@@ -173,11 +173,11 @@ fun AddBarangContent(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Unit: ${selectedBarang.unitName}",
+                            text = "Unit: ${selectedBarang.satKecil}",
                             style = MaterialTheme.typography.bodySmall
                         )
                         Text(
-                            text = "Price: ${formatCurrency(selectedBarang.unitPrice)}",
+                            text = "Price: ${formatCurrency(selectedBarang.hrgSat)}",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -237,7 +237,7 @@ fun AddBarangContent(
                             style = MaterialTheme.typography.headlineSmall
                         )
                         Text(
-                            text = formatCurrency(selectedBarang.unitPrice * qty),
+                            text = formatCurrency(selectedBarang.hrgSat * qty),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )

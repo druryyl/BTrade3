@@ -131,7 +131,7 @@ fun BarangItem(
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
-                    text = "${barang.unitName}: ${formatCurrency(barang.unitPrice)}",
+                    text = "${barang.satKecil}: ${formatCurrency(barang.hrgSat)}",
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                 )
