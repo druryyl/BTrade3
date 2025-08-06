@@ -1,7 +1,6 @@
 package com.elsasa.btrade3.ui.screen
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -61,14 +60,21 @@ fun FakturEntryScreen(
         ?.savedStateHandle
         ?.get<String>("selected_sales_name")
 
-    LaunchedEffect(fakturId) {
-        Log.d("FakturEntryScreen", "fakturId: $fakturId")
-        if (fakturId == "new") {
+    val initializationKey = if (fakturId == "new") {
+        val fakturId2 = faktur?.fakturId
+        if (fakturId2 == null) {
+            "new"
+        } else {
+            fakturId2
+        }
+    } else {
+        fakturId
+    }
+    LaunchedEffect(initializationKey) {
+        if (initializationKey == "new") {
             viewModel.createNewFaktur(context)
-            Log.d("FakturEntryScreen", "New faktur created")
-        } else if (fakturId != null) {
-            fakturId?.let { viewModel.loadFaktur(it) }
-            Log.d("FakturEntryScreen", "Faktur loaded: $fakturId")
+        } else {
+            initializationKey?.let { viewModel.loadFaktur(it) }
         }
     }
 
@@ -125,12 +131,6 @@ fun FakturEntryScreen(
                 onViewItems = {
                     navController.navigate("item_list/${fakturData.fakturId}")
                 },
-                onUpdateCustomer = { code, name ->
-                    viewModel.updateCustomerInfo(code, name)
-                },
-                onUpdateSales = { name ->
-                    viewModel.updateSalesInfo(name)
-                },
                 modifier = Modifier.padding(padding)
             )
         }
@@ -143,8 +143,6 @@ fun FakturEntryContent(
     onCustomerSelect: () -> Unit,
     onSalesSelect: () -> Unit,
     onViewItems: () -> Unit,
-    onUpdateCustomer: (String, String) -> Unit,
-    onUpdateSales: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val customerCode = faktur.customerCode
@@ -273,5 +271,7 @@ fun FakturEntryContent(
 private fun formatCurrency(amount: Double): String {
     val locale = Locale.Builder().setLanguage("id").setRegion("ID").build()
     val format = NumberFormat.getCurrencyInstance(locale)
+    format.maximumFractionDigits = 0  // This sets the maximum decimal places to 0
+    format.minimumFractionDigits = 0
     return format.format(amount)
 }

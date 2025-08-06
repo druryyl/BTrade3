@@ -7,7 +7,7 @@ data class Barang(
     val brgCode: String,
     val brgName: String,
     val kategoriName: String,
-    val availableStock: Int,
+    val stok: Int,
     val unitName: String,
     val unitPrice: Double
 ) : Parcelable

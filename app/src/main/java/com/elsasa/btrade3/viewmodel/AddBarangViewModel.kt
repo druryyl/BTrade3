@@ -1,6 +1,5 @@
 package com.elsasa.btrade3.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elsasa.btrade3.model.Barang
@@ -96,7 +95,7 @@ class AddBarangViewModel(
                             brgCode = item.brgCode,
                             brgName = item.brgName,
                             kategoriName = "",
-                            availableStock = 0,
+                            stok = 0,
                             unitName = item.unitName,
                             unitPrice = item.unitPrice
                         )

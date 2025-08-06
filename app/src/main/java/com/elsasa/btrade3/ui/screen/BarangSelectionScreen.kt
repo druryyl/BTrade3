@@ -32,6 +32,8 @@ import androidx.navigation.NavController
 import com.elsasa.btrade3.model.Barang
 import com.elsasa.btrade3.ui.component.SearchBar
 import com.elsasa.btrade3.viewmodel.AddBarangViewModel
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,7 +127,7 @@ fun BarangItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Stock: ${barang.availableStock}",
+                    text = "Stock: ${barang.stok}",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
@@ -139,6 +141,9 @@ fun BarangItem(
 }
 
 private fun formatCurrency(amount: Double): String {
-    val format = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("id", "ID"))
+    val locale = Locale.Builder().setLanguage("id").setRegion("ID").build()
+    val format = NumberFormat.getCurrencyInstance(locale)
+    format.maximumFractionDigits = 0  // This sets the maximum decimal places to 0
+    format.minimumFractionDigits = 0
     return format.format(amount)
 }
