@@ -6,10 +6,10 @@ import com.elsasa.btrade3.model.Barang
 import com.elsasa.btrade3.model.FakturItem
 import com.elsasa.btrade3.repository.BarangRepository
 import com.elsasa.btrade3.repository.FakturRepository
-import com.elsasa.btrade3.repository.StaticDataRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -46,6 +46,7 @@ class AddBarangViewModel(
 
     private fun loadBarangs() {
         viewModelScope.launch {
+
             barangRepository.getAllBarangs().collect { barangList ->
                 _barangs.value = barangList
             }

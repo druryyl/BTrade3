@@ -129,7 +129,7 @@ fun ItemCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "${item.brgName} (${item.brgCode})",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))

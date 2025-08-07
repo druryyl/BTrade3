@@ -105,14 +105,14 @@ fun AppNavigation(
             val fakturId = backStackEntry.arguments?.getString("fakturId") ?: ""
             val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
             val viewModel: AddBarangViewModel = viewModel(
-                factory = AddBarangViewModelFactory(fakturRepository, barangRepository)
+                factory = AddBarangViewModelFactory(fakturRepository, barangRepository) // Updated
             )
             AddBarangScreen(navController, viewModel, fakturId, itemId.ifEmpty { null })
         }
 
         composable("barang_selection") {
-            val viewModel: AddBarangViewModel = viewModel(
-                factory = AddBarangViewModelFactory(fakturRepository, barangRepository)
+            val viewModel: BarangSelectionViewModel = viewModel(
+                factory = BarangSelectionViewModelFactory(barangRepository)
             )
             BarangSelectionScreen(navController, viewModel)
         }
