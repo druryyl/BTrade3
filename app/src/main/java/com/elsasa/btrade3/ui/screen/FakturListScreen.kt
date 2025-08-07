@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -48,7 +49,14 @@ fun FakturListScreen(
                     }){
                         Icon(Icons.Outlined.Face, contentDescription = "Logout")
                     }
-                }
+                    IconButton(onClick = {
+                        navController.navigate("sync")
+                    }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Sync Data")
+                    }
+                },
+
+
             )
         },
         floatingActionButton = {

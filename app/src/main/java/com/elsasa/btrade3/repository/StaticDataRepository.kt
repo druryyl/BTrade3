@@ -1,6 +1,5 @@
 package com.elsasa.btrade3.repository
 
-
 import com.elsasa.btrade3.model.Barang
 import com.elsasa.btrade3.model.Customer
 import com.elsasa.btrade3.model.SalesPerson
@@ -35,14 +34,14 @@ class StaticDataRepository {
     fun getBarangs(): Flow<List<Barang>> = flow {
         emit(
             listOf(
-                Barang("B001", "Laptop ASUS", "Elektronik", 50, "Unit", 8500000.0),
-                Barang("B002", "Mouse Wireless", "Aksesoris", 200, "Unit", 150000.0),
-                Barang("B003", "Keyboard Mechanical", "Aksesoris", 150, "Unit", 450000.0),
-                Barang("B004", "Monitor 24\"", "Elektronik", 75, "Unit", 2200000.0),
-                Barang("B005", "Printer Epson", "Elektronik", 30, "Unit", 3200000.0),
-                Barang("B006", "Flashdisk 32GB", "Aksesoris", 300, "Unit", 85000.0),
-                Barang("B007", "Webcam HD", "Aksesoris", 80, "Unit", 650000.0),
-                Barang("B008", "Speaker Bluetooth", "Elektronik", 60, "Unit", 750000.0)
+                Barang("", "B001", "Laptop ASUS", "Elektronik", "", "Unit", 1, 8500000.0, 50),
+                Barang("", "B002", "Mouse Wireless", "Aksesoris", "", "Unit", 1, 150000.0, 200),
+                Barang("", "B003", "Keyboard Mechanical", "Aksesoris", "", "Unit", 1, 450000.0, 150),
+                Barang("", "B004", "Monitor 24\"", "Elektronik", "", "Unit", 1, 2200000.0, 75),
+                Barang("", "B005", "Printer Epson", "Elektronik", "", "Unit", 1, 3200000.0, 30),
+                Barang("", "B006", "Flashdisk 32GB", "Aksesoris", "", "Unit", 1, 85000.0, 300),
+                Barang("", "B007", "Webcam HD", "Aksesoris", "", "Unit", 1, 650000.0, 80),
+                Barang("", "B008", "Speaker Bluetooth", "Elektronik", "", "Unit", 1, 750000.0, 60)
             )
         )
     }

@@ -1,21 +1,22 @@
 package com.elsasa.btrade3.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elsasa.btrade3.model.Barang
 import com.elsasa.btrade3.model.FakturItem
+import com.elsasa.btrade3.repository.BarangRepository
 import com.elsasa.btrade3.repository.FakturRepository
-import com.elsasa.btrade3.repository.StaticDataRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class AddBarangViewModel(
     private val fakturRepository: FakturRepository,
-    private val staticDataRepository: StaticDataRepository
+    private val barangRepository: BarangRepository
+    //private val staticDataRepository: StaticDataRepository
 ) : ViewModel() {
     private val _fakturId = MutableStateFlow<String?>(null)
     val fakturId: StateFlow<String?> = _fakturId.asStateFlow()
@@ -45,7 +46,8 @@ class AddBarangViewModel(
 
     private fun loadBarangs() {
         viewModelScope.launch {
-            staticDataRepository.getBarangs().collect { barangList ->
+
+            barangRepository.getAllBarangs().collect { barangList ->
                 _barangs.value = barangList
             }
         }
@@ -62,8 +64,8 @@ class AddBarangViewModel(
         } else {
             _barangs.value.filter { barang ->
                 barang.brgCode.lowercase().contains(query) ||
-                        barang.brgName.lowercase().contains(query) ||
-                        barang.kategoriName.lowercase().contains(query)
+                barang.brgName.lowercase().contains(query) ||
+                barang.kategoriName.lowercase().contains(query)
             }
         }
     }
@@ -93,12 +95,15 @@ class AddBarangViewModel(
 
                     val barang = _barangs.value.find{ it.brgCode == item.brgCode }
                         ?: Barang(
+                            brgId = "",
                             brgCode = item.brgCode,
                             brgName = item.brgName,
                             kategoriName = "",
-                            availableStock = 0,
-                            unitName = item.unitName,
-                            unitPrice = item.unitPrice
+                            satBesar = "",
+                            satKecil = item.unitName,
+                            konversi = 1,
+                            hrgSat = item.unitPrice,
+                            stok = 0
                         )
 
                     _selectedBarang.value = barang
@@ -118,25 +123,20 @@ class AddBarangViewModel(
             val currentItems = fakturRepository.getFakturItemsByFakturId(fakturId).first()
             val nextNoUrut = currentItems.size + 1
 
-            val lineTotal = qty * barang.unitPrice
+            val lineTotal = qty * barang.hrgSat
             val fakturItem = FakturItem(
                 fakturId = fakturId,
                 noUrut = nextNoUrut,
                 brgCode = barang.brgCode,
                 brgName = barang.brgName,
                 qty = qty,
-                unitName = barang.unitName,
-                unitPrice = barang.unitPrice,
+                unitName = barang.satKecil,
+                unitPrice = barang.hrgSat,
                 lineTotal = lineTotal
             )
 
             fakturRepository.insertFakturItem(fakturItem)
-
-            // Update total amount in faktur
             updateTotalAmount()
-//            val total = fakturRepository.calculateTotalAmount(fakturId)
-//            fakturRepository.getFakturById(fakturId)?.let { faktur ->
-//                fakturRepository.updateFaktur(faktur.copy(totalAmount = total))
         }
     }
 
@@ -147,15 +147,15 @@ class AddBarangViewModel(
         val originalItem = _originalFakturItem.value ?: return
 
         viewModelScope.launch {
-            val lineTotal = qty * barang.unitPrice
+            val lineTotal = qty * barang.hrgSat
             val fakturItem = FakturItem(
                 fakturId = fakturId,
                 noUrut = originalItem.noUrut,
                 brgCode = barang.brgCode,
                 brgName = barang.brgName,
                 qty = qty,
-                unitName = barang.unitName,
-                unitPrice = barang.unitPrice,
+                unitName = barang.satKecil,
+                unitPrice = barang.hrgSat,
                 lineTotal = lineTotal
             )
 

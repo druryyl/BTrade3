@@ -1,8 +1,13 @@
 package com.elsasa.btrade3.ui.component
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
@@ -19,7 +24,8 @@ import androidx.compose.ui.unit.dp
 import com.elsasa.btrade3.model.Faktur
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun FakturCard(
@@ -96,6 +102,9 @@ private fun formatDate(dateString: String): String {
 }
 
 private fun formatCurrency(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+    val locale = Locale.Builder().setLanguage("id").setRegion("ID").build()
+    val format = NumberFormat.getCurrencyInstance(locale)
+    format.maximumFractionDigits = 0  // This sets the maximum decimal places to 0
+    format.minimumFractionDigits = 0
     return format.format(amount)
 }

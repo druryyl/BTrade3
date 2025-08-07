@@ -129,7 +129,7 @@ fun ItemCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "${item.brgName} (${item.brgCode})",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -155,6 +155,9 @@ fun ItemCard(
 }
 
 private fun formatCurrency(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+    val locale = Locale.Builder().setLanguage("id").setRegion("ID").build()
+    val format = NumberFormat.getCurrencyInstance(locale)
+    format.maximumFractionDigits = 0  // This sets the maximum decimal places to 0
+    format.minimumFractionDigits = 0
     return format.format(amount)
 }

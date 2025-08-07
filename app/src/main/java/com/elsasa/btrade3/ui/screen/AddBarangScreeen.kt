@@ -173,11 +173,11 @@ fun AddBarangContent(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Unit: ${selectedBarang.unitName}",
+                            text = "Unit: ${selectedBarang.satKecil}",
                             style = MaterialTheme.typography.bodySmall
                         )
                         Text(
-                            text = "Price: ${formatCurrency(selectedBarang.unitPrice)}",
+                            text = "Price: ${formatCurrency(selectedBarang.hrgSat)}",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -237,7 +237,7 @@ fun AddBarangContent(
                             style = MaterialTheme.typography.headlineSmall
                         )
                         Text(
-                            text = formatCurrency(selectedBarang.unitPrice * qty),
+                            text = formatCurrency(selectedBarang.hrgSat * qty),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -256,6 +256,9 @@ fun AddBarangContent(
 }
 
 private fun formatCurrency(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+    val locale = Locale.Builder().setLanguage("id").setRegion("ID").build()
+    val format = NumberFormat.getCurrencyInstance(locale)
+    format.maximumFractionDigits = 0  // This sets the maximum decimal places to 0
+    format.minimumFractionDigits = 0
     return format.format(amount)
 }
