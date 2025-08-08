@@ -17,10 +17,15 @@ import androidx.room.ForeignKey
 data class FakturItem(
     val fakturId: String,
     val noUrut: Int,
+    val brgId: String,
     val brgCode: String,
     val brgName: String,
-    val qty: Int,
-    val unitName: String,
+    val kategoriName: String,
+    val qtyBesar: Int,
+    val satBesar: String,
+    val qtyKecil: Int,
+    val satKecil: String,
+    val konversi: Int,
     val unitPrice: Double,
     val lineTotal: Double
 )

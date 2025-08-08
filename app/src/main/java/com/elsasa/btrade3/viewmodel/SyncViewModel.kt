@@ -25,6 +25,30 @@ class SyncViewModel(
             }
         }
     }
+
+    fun syncCustomers() {
+        viewModelScope.launch {
+            _syncState.value = SyncRepository.SyncResult.Loading
+            try {
+                _syncState.value = syncRepository.syncCustomers()
+            } catch (e: Exception) {
+                _syncState.value = SyncRepository.SyncResult.Error("Sync failed: ${e.message}")
+            }
+        }
+    }
+
+    fun syncSalesPersons() {
+        viewModelScope.launch {
+            _syncState.value = SyncRepository.SyncResult.Loading
+            try {
+                _syncState.value = syncRepository.syncSalesPersons()
+            } catch (e: Exception) {
+                _syncState.value = SyncRepository.SyncResult.Error("Sync failed: ${e.message}")
+            }
+        }
+    }
+
+
     // Initialize with a ready state so it's not stuck in loading
     init {
         _syncState.value = SyncRepository.SyncResult.Success("Ready to sync", 0)

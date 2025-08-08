@@ -134,7 +134,7 @@ fun ItemCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${item.qty} ${item.unitName} x ${formatCurrency(item.unitPrice)}",
+                    text = "${item.qtyBesar} ${item.satBesar} x ${formatCurrency(item.unitPrice)}",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Spacer(modifier = Modifier.height(4.dp))

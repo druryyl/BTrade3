@@ -12,8 +12,10 @@ import androidx.navigation.navArgument
 import com.elsasa.btrade3.database.AppDatabase
 import com.elsasa.btrade3.network.NetworkModule
 import com.elsasa.btrade3.repository.BarangRepository
+import com.elsasa.btrade3.repository.CustomerRepository
 import com.elsasa.btrade3.repository.FakturRepository
 import com.elsasa.btrade3.repository.NetworkRepository
+import com.elsasa.btrade3.repository.SalesPersonRepository
 import com.elsasa.btrade3.repository.StaticDataRepository
 import com.elsasa.btrade3.repository.SyncRepository
 import com.elsasa.btrade3.ui.screen.*
@@ -29,12 +31,13 @@ fun AppNavigation(
         database.fakturDao(),
         database.fakturItemDao()
     )
-    var barangRepository = BarangRepository(
-        database.barangDao()
-    )
+    val barangRepository = BarangRepository(database.barangDao())
+    val customerRepository = CustomerRepository(database.customerDao())
+    val salesPersonRepository = SalesPersonRepository(database.salesPersonDao()) // Add this
+
     val apiService = NetworkModule.createApiService()
     val networkRepository = NetworkRepository(apiService)
-    val syncRepository = SyncRepository(networkRepository, barangRepository)
+    val syncRepository = SyncRepository(networkRepository, barangRepository, customerRepository, salesPersonRepository)
     val staticDataRepository = StaticDataRepository()
 
     val isLoggedIn = remember { checkIfUserIsLoggedIn(context) }
@@ -72,14 +75,14 @@ fun AppNavigation(
 
         composable("customer_selection") {
             val viewModel: CustomerSelectionViewModel = viewModel(
-                factory = CustomerSelectionViewModelFactory(staticDataRepository)
+                factory = CustomerSelectionViewModelFactory(customerRepository)
             )
             CustomerSelectionScreen(navController, viewModel)
         }
 
         composable("sales_selection") {
             val viewModel: SalesSelectionViewModel = viewModel(
-                factory = SalesSelectionViewModelFactory(staticDataRepository)
+                factory = SalesSelectionViewModelFactory(salesPersonRepository)
             )
             SalesSelectionScreen(navController, viewModel)
         }

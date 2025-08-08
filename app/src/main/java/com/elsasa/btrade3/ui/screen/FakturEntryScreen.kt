@@ -149,7 +149,7 @@ fun FakturEntryContent(
     val customerName = faktur.customerName
     val salesName = faktur.salesName
     val userEmail = faktur.userEmail
-    // Log.d("FakturEntryContent", "customerCode=$customerCode, customerName=$customerName, salesName=$salesName")
+    // Log.d("FakturEntryContent", "customerCode=$customerCode, customerName=$customerName, salesPersonName=$salesPersonName")
 
     Column(
         modifier = modifier

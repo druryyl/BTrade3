@@ -71,7 +71,7 @@ fun SalesSelectionScreen(
                         onClick = {
                             // Navigate back with selected sales person
                             navController.previousBackStackEntry?.savedStateHandle?.set(
-                                "selected_sales_name", salesPerson.salesName
+                                "selected_sales_name", salesPerson.salesPersonName
                             )
                             navController.popBackStack()
                         }
@@ -100,12 +100,12 @@ fun SalesPersonItem(
                 .padding(16.dp)
         ) {
             Text(
-                text = salesPerson.salesName,
+                text = salesPerson.salesPersonName,
                 style = MaterialTheme.typography.headlineSmall
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Code: ${salesPerson.salesCode}",
+                text = "Code: ${salesPerson.salesPersonCode}",
                 style = MaterialTheme.typography.bodySmall
             )
         }

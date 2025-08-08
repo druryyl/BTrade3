@@ -16,7 +16,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +49,8 @@ fun AddBarangScreen(
     itemId: String? = null
 ) {
     val selectedBarang by viewModel.selectedBarang.collectAsState()
-    val qty by viewModel.qty.collectAsState()
+    val qtyBesar by viewModel.qtyBesar.collectAsState()
+    val qtyKecil by viewModel.qtyKecil.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.setFakturId(fakturId)
@@ -81,7 +84,8 @@ fun AddBarangScreen(
     ) { padding ->
         AddBarangContent(
             selectedBarang = selectedBarang,
-            qty = qty,
+            qtyBesar = qtyBesar,
+            qtyKecil = qtyKecil,
             onBarangSelect = {
                 navController.navigate("barang_selection") {
                     popUpTo("add_barang") { saveState = true }
@@ -89,7 +93,8 @@ fun AddBarangScreen(
                     restoreState = true
                 }
             },
-            onQtyChange = { viewModel.setQty(it) },
+            onQtyBesarChange = { viewModel.setQtyBesar(it) },
+            onQtyKecilChange = { viewModel.setQtyKecil(it) },
             onSave = {
                 if (itemId == null) {
                     viewModel.saveItem()
@@ -108,14 +113,14 @@ fun AddBarangScreen(
 @Composable
 fun AddBarangContent(
     selectedBarang: Barang?,
-    qty: Int,
+    qtyBesar: Int,
+    qtyKecil: Int,
     onBarangSelect: () -> Unit,
-    onQtyChange: (Int) -> Unit,
+    onQtyBesarChange: (Int) -> Unit,
+    onQtyKecilChange: (Int) -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Log.d("AddBarangTag", "Recomposing with barang: ${selectedBarang?.brgName}")
-
     Column(
         modifier = modifier
             .padding(16.dp)
@@ -154,12 +159,12 @@ fun AddBarangContent(
                 ) {
                     Text(
                         text = selectedBarang.brgName,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Code: ${selectedBarang.brgCode}",
+                        text = "Code: ${selectedBarang.brgCode} (${selectedBarang.brgId})",
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -191,9 +196,44 @@ fun AddBarangContent(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
+                    if (selectedBarang.konversi > 1) {
+                        Text(
+                            text = "Qty Besar (${selectedBarang.satBesar})",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    if (qtyBesar > 0) onQtyBesarChange(qtyBesar - 1)
+                                }
+                            ) {
+                                Text("-", style = MaterialTheme.typography.headlineMedium)
+                            }
+                            Text(
+                                text = qtyBesar.toString(),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            IconButton(
+                                onClick = { onQtyBesarChange(qtyBesar + 1) }
+                            ) {
+                                Text("+", style = MaterialTheme.typography.headlineMedium)
+                            }
+                        }
+                        HorizontalDivider(
+                            Modifier,
+                            DividerDefaults.Thickness,
+                            DividerDefaults.color)
+                    }
+
                     Text(
-                        text = "Quantity",
-                        style = MaterialTheme.typography.headlineSmall,
+                        text = "Qty Kecil ${selectedBarang.satKecil}",
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -204,17 +244,17 @@ fun AddBarangContent(
                     ) {
                         IconButton(
                             onClick = {
-                                if (qty > 1) onQtyChange(qty - 1)
+                                if (qtyKecil > 0) onQtyKecilChange(qtyKecil - 1)
                             }
                         ) {
                             Text("-", style = MaterialTheme.typography.headlineMedium)
                         }
                         Text(
-                            text = qty.toString(),
+                            text = qtyKecil.toString(),
                             style = MaterialTheme.typography.headlineSmall
                         )
                         IconButton(
-                            onClick = { onQtyChange(qty + 1) }
+                            onClick = { onQtyKecilChange(qtyKecil + 1) }
                         ) {
                             Text("+", style = MaterialTheme.typography.headlineMedium)
                         }
@@ -232,12 +272,15 @@ fun AddBarangContent(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        val totalBesar = selectedBarang.hrgSat * selectedBarang.konversi * qtyBesar
+                        val totalKecil = selectedBarang.hrgSat * qtyKecil
+                        val total = totalBesar + totalKecil
                         Text(
                             text = "Line Total:",
                             style = MaterialTheme.typography.headlineSmall
                         )
                         Text(
-                            text = formatCurrency(selectedBarang.hrgSat * qty),
+                            text = formatCurrency(total),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )

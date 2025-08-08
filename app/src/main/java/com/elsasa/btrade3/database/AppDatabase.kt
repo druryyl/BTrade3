@@ -6,21 +6,27 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.elsasa.btrade3.dao.BarangDao
+import com.elsasa.btrade3.dao.CustomerDao
 import com.elsasa.btrade3.dao.FakturDao
 import com.elsasa.btrade3.dao.FakturItemDao
+import com.elsasa.btrade3.dao.SalesPersonDao
 import com.elsasa.btrade3.model.Barang
+import com.elsasa.btrade3.model.Customer
 import com.elsasa.btrade3.model.Faktur
 import com.elsasa.btrade3.model.FakturItem
+import com.elsasa.btrade3.model.SalesPerson
 
 @Database(
-    entities = [Faktur::class, FakturItem::class, Barang::class],
-    version = 3,
+    entities = [Faktur::class, FakturItem::class, Barang::class, Customer::class, SalesPerson::class], // Add SalesPerson::class
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun fakturDao(): FakturDao
     abstract fun fakturItemDao(): FakturItemDao
     abstract fun barangDao(): BarangDao
+    abstract fun customerDao(): CustomerDao
+    abstract fun salesPersonDao(): SalesPersonDao // Add this
 
     companion object {
         @Volatile

@@ -64,7 +64,7 @@ fun BarangSelectionScreen(
     val isSearchFocused = remember { mutableStateOf(false) }
 
     var searchText by rememberSaveable { mutableStateOf(searchQuery) }
-    val recentSearchManager = remember { RecentSearchManager(context) }
+    val recentSearchManager = remember { RecentSearchManager(context, "barang") }
     var recentSearches by remember { mutableStateOf(recentSearchManager.getRecentSearches()) }
 
     val filteredBarangs = remember(barangs, searchText) {

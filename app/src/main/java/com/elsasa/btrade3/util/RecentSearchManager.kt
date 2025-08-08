@@ -6,8 +6,11 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import androidx.core.content.edit
 
-class RecentSearchManager(private val context: Context) {
-    private val prefs: SharedPreferences = context.getSharedPreferences("recent_searches", Context.MODE_PRIVATE)
+class RecentSearchManager(
+    private val context: Context,
+    private val searchType: String
+) {
+    private val prefs: SharedPreferences = context.getSharedPreferences("recent_searches$searchType", Context.MODE_PRIVATE)
     private val gson = Gson()
     private val MAX_RECENT_SEARCHES = 10
 

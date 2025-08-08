@@ -29,6 +29,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,6 +49,7 @@ fun SyncScreen(
     viewModel: SyncViewModel
 ) {
     val syncState by viewModel.syncState.collectAsState()
+    var syncType by remember { mutableStateOf("barang") } // Add this for type selection
 
     Scaffold(
         topBar = {
@@ -193,6 +197,71 @@ fun SyncScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Sync Barang Data")
+                    }
+                }
+            }
+
+            // Add Customer sync button:
+            Button(
+                onClick = {
+                    viewModel.syncCustomers()
+                    // You'll need to update your SyncViewModel to handle different sync types
+                    // For now, you can add a separate method or parameter
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                enabled = syncState !is SyncRepository.SyncResult.Loading
+            ) {
+                if (syncState is SyncRepository.SyncResult.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Sync",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Sync Customer Data")
+                    }
+                }
+            }
+
+            Button(
+                onClick = {
+                    viewModel.syncSalesPersons()
+                    // You'll need to update your SyncViewModel to handle different sync types
+                    // For now, you can add a separate method or parameter
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                enabled = syncState !is SyncRepository.SyncResult.Loading
+            ) {
+                if (syncState is SyncRepository.SyncResult.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Sync",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Sync Customer Data")
                     }
                 }
             }

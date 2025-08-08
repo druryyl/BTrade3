@@ -10,11 +10,11 @@ class StaticDataRepository {
     fun getCustomers(): Flow<List<Customer>> = flow {
         emit(
             listOf(
-                Customer("C001", "PT Maju Jaya", "Jl. Merdeka No. 123"),
-                Customer("C002", "CV Berkah Abadi", "Jl. Sudirman No. 456"),
-                Customer("C003", "Toko Sejahtera", "Jl. Gatot Subroto No. 789"),
-                Customer("C004", "UD Harmoni", "Jl. Diponegoro No. 321"),
-                Customer("C005", "PT Sumber Rejeki", "Jl. Thamrin No. 654")
+                Customer("", "C001", "PT Maju Jaya", "Jl. Merdeka No. 123", ""),
+                Customer("", "C002", "CV Berkah Abadi", "Jl. Sudirman No. 456", ""),
+                Customer("", "C003", "Toko Sejahtera", "Jl. Gatot Subroto No. 789", ""),
+                Customer("", "C004", "UD Harmoni", "Jl. Diponegoro No. 321", ""),
+                Customer("", "C005", "PT Sumber Rejeki", "Jl. Thamrin No. 654", "")
             )
         )
     }
@@ -22,11 +22,11 @@ class StaticDataRepository {
     fun getSalesPersons(): Flow<List<SalesPerson>> = flow {
         emit(
             listOf(
-                SalesPerson("S001", "Budi Santoso"),
-                SalesPerson("S002", "Ani Wijaya"),
-                SalesPerson("S003", "Joko Susilo"),
-                SalesPerson("S004", "Dewi Lestari"),
-                SalesPerson("S005", "Agus Prabowo")
+                SalesPerson("", "S001", "Budi Santoso"),
+                SalesPerson("", "S002", "Ani Wijaya"),
+                SalesPerson("", "S003", "Joko Susilo"),
+                SalesPerson("", "S004", "Dewi Lestari"),
+                SalesPerson("", "S005", "Agus Prabowo")
             )
         )
     }
