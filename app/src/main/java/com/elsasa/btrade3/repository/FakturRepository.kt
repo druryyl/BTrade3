@@ -8,10 +8,9 @@ import kotlinx.coroutines.flow.Flow
 
 class FakturRepository(
     private val fakturDao: FakturDao,
-    private val fakturItemDao: FakturItemDao
+    private val fakturItemDao: FakturItemDao,
 ) {
     fun getAllFakturs(): Flow<List<Faktur>> = fakturDao.getAllFakturs()
-
     suspend fun getFakturById(fakturId: String): Faktur? = fakturDao.getFakturById(fakturId)
 
     suspend fun insertFaktur(faktur: Faktur) = fakturDao.insertFaktur(faktur)

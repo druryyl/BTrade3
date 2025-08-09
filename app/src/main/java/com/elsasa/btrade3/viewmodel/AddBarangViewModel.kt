@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elsasa.btrade3.model.Barang
 import com.elsasa.btrade3.model.FakturItem
-import com.elsasa.btrade3.repository.BarangRepository
 import com.elsasa.btrade3.repository.FakturRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +13,7 @@ import kotlinx.coroutines.launch
 
 class AddBarangViewModel(
     private val fakturRepository: FakturRepository,
-    private val barangRepository: BarangRepository
-    //private val staticDataRepository: StaticDataRepository
+    //private val barangRepository: BarangRepository
 ) : ViewModel() {
     private val _fakturId = MutableStateFlow<String?>(null)
     val fakturId: StateFlow<String?> = _fakturId.asStateFlow()
@@ -32,44 +30,12 @@ class AddBarangViewModel(
     private val _editingItemId: MutableStateFlow<String?> = MutableStateFlow(null)
     private val _originalFakturItem: MutableStateFlow<FakturItem?> = MutableStateFlow(null)
 
-    private val _barangs = MutableStateFlow<List<Barang>>(emptyList())
-    val barangs: StateFlow<List<Barang>> = _barangs.asStateFlow()
-
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    init {
-        loadBarangs()
-    }
 
     fun setFakturId(fakturId: String) {
         _fakturId.value = fakturId
-    }
-
-    private fun loadBarangs() {
-        viewModelScope.launch {
-
-            barangRepository.getAllBarangs().collect { barangList ->
-                _barangs.value = barangList
-            }
-        }
-    }
-
-    fun setSearchQuery(query: String) {
-        _searchQuery.value = query
-    }
-
-    fun getFilteredBarangs(): List<Barang> {
-        val query = _searchQuery.value.lowercase()
-        return if (query.isEmpty()) {
-            _barangs.value
-        } else {
-            _barangs.value.filter { barang ->
-                barang.brgCode.lowercase().contains(query) ||
-                barang.brgName.lowercase().contains(query) ||
-                barang.kategoriName.lowercase().contains(query)
-            }
-        }
     }
 
     fun selectBarang(barang: Barang) {
@@ -102,8 +68,7 @@ class AddBarangViewModel(
                     _editingItemId.value = itemId
                     _originalFakturItem.value = item
 
-                    val barang = _barangs.value.find{ it.brgCode == item.brgCode }
-                        ?: Barang(
+                    val barang = Barang(
                             brgId = item.brgId,
                             brgCode = item.brgCode,
                             brgName = item.brgName,
@@ -117,6 +82,7 @@ class AddBarangViewModel(
 
                     _selectedBarang.value = barang
                     _qtyBesar.value = item.qtyBesar
+                    _qtyKecil.value = item.qtyKecil
                 }
             }
         }
@@ -157,7 +123,7 @@ class AddBarangViewModel(
         }
     }
 
-    fun updateItem(itemId: String){
+    fun updateItem(){
         val fakturId = _fakturId.value ?: return
         val barang = _selectedBarang.value ?: return
         val qtyBesar = _qtyBesar.value
@@ -196,7 +162,9 @@ class AddBarangViewModel(
         viewModelScope.launch {
             val total = fakturRepository.calculateTotalAmount(fakturId)
             fakturRepository.getFakturById(fakturId)?.let { faktur ->
-                fakturRepository.updateFaktur(faktur.copy(totalAmount = total))
+                fakturRepository.updateFaktur(faktur.copy(
+                    totalAmount = total
+                ))
             }
         }
     }

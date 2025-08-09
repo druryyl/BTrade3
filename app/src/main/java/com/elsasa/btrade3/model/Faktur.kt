@@ -8,10 +8,14 @@ import androidx.room.PrimaryKey
 data class Faktur(
     @PrimaryKey
     val fakturId: String,
+    val customerId: String,
     val customerCode: String,
     val customerName: String,
+    val customerAddress: String,
     val fakturDate: String, // yyyy-MM-dd
+    val salesId: String,
     val salesName: String,
     val totalAmount: Double,
-    val userEmail: String = ""
+    val userEmail: String,
+    val statusSync: String
 )

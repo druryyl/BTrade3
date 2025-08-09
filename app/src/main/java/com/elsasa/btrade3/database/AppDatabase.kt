@@ -17,8 +17,8 @@ import com.elsasa.btrade3.model.FakturItem
 import com.elsasa.btrade3.model.SalesPerson
 
 @Database(
-    entities = [Faktur::class, FakturItem::class, Barang::class, Customer::class, SalesPerson::class], // Add SalesPerson::class
-    version = 7,
+    entities = [Faktur::class, FakturItem::class, Barang::class, Customer::class, SalesPerson::class],
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

@@ -1,11 +1,14 @@
 package com.elsasa.btrade3.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elsasa.btrade3.model.Faktur
 import com.elsasa.btrade3.repository.FakturRepository
 import com.elsasa.btrade3.ui.getUserEmail
+import com.elsasa.btrade3.util.FriendlyIdGenerator
+import com.elsasa.btrade3.util.LastSelectionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,11 +17,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class FakturEntryViewModel(
-    private val repository: FakturRepository
+    private val repository: FakturRepository,
+    private val context: Context
+
 ) : ViewModel() {
     private val _faktur = MutableStateFlow<Faktur?>(null)
     val faktur: StateFlow<Faktur?> = _faktur.asStateFlow()
 
+    private val lastSelectionManager = LastSelectionManager(context)
     private var hasCreatedNewFaktur = false
 
     fun loadFaktur(fakturId: String) {
@@ -28,19 +34,30 @@ class FakturEntryViewModel(
         }
     }
 
-    fun createNewFaktur(context: android.content.Context) {
+    fun createNewFaktur(context: Context) {
         if (hasCreatedNewFaktur) return
 
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val userEmail = getUserEmail(context) ?: ""
+        val idGenerator = FriendlyIdGenerator()
+
+        val lastSalesPersonId = lastSelectionManager.getLastSalesPersonId() ?: ""
+        val lastSalesPersonName = lastSelectionManager.getLastSalesPersonName() ?: ""
+
+        val fakturId = idGenerator.generateDateSequenceId(context)
+
         val newFaktur =  Faktur(
-            fakturId = UUID.randomUUID().toString(),
+            fakturId = fakturId,
+            customerId = "",
             customerCode = "",
             customerName = "",
+            customerAddress = "",
             fakturDate = currentDate,
-            salesName = "",
+            salesId = lastSalesPersonId,
+            salesName = lastSalesPersonName,
             totalAmount = 0.0,
-            userEmail = userEmail
+            userEmail = userEmail,
+            statusSync = "OPEN"
         )
         _faktur.value = newFaktur
         hasCreatedNewFaktur = true
@@ -49,21 +66,27 @@ class FakturEntryViewModel(
         saveFaktur(newFaktur)
     }
 
-    fun updateCustomerInfo(customerCode: String, customerName: String) {
+    fun updateCustomerInfo(customerId: String, customerCode: String, customerName: String, customerAddress: String) {
         val current = _faktur.value ?: return
         val updatedFaktur = current.copy(
+            customerId = customerId,
             customerCode = customerCode,
-            customerName = customerName
+            customerName = customerName,
+            customerAddress = customerAddress
         )
         _faktur.value = updatedFaktur
         saveFakturAndReload(updatedFaktur)
+
+        lastSelectionManager.saveLastCustomer(customerId,customerCode, customerName, customerAddress)
     }
 
-    fun updateSalesInfo(salesName: String) {
+    fun updateSalesInfo(salesId: String, salesName: String) {
         val current = _faktur.value ?: return
-        val updatedFaktur = current.copy(salesName = salesName)
+        val updatedFaktur = current.copy(salesId = salesId, salesName = salesName,)
         _faktur.value = updatedFaktur
         saveFakturAndReload(updatedFaktur)
+
+        lastSelectionManager.saveLastSalesPerson(salesId,salesName)
     }
 
     fun updateTotalAmount(totalAmount: Double) {

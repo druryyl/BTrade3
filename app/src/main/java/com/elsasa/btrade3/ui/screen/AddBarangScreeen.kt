@@ -1,6 +1,5 @@
 package com.elsasa.btrade3.ui.screen
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -49,8 +49,8 @@ fun AddBarangScreen(
     itemId: String? = null
 ) {
     val selectedBarang by viewModel.selectedBarang.collectAsState()
-    val qtyBesar by viewModel.qtyBesar.collectAsState()
     val qtyKecil by viewModel.qtyKecil.collectAsState()
+    val qtyBesar by viewModel.qtyBesar.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.setFakturId(fakturId)
@@ -99,7 +99,7 @@ fun AddBarangScreen(
                 if (itemId == null) {
                     viewModel.saveItem()
                 } else {
-                    viewModel.updateItem(itemId)
+                    viewModel.updateItem()
                 }
                 navController.popBackStack()
             },
@@ -135,8 +135,7 @@ fun AddBarangContent(
             ) {
                 Text(
                     text = "Select Item",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleLarge
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedButton(
@@ -172,21 +171,21 @@ fun AddBarangContent(
                         text = "Category: ${selectedBarang.kategoriName}",
                         style = MaterialTheme.typography.bodySmall
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Unit: ${selectedBarang.satKecil}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            text = "Price: ${formatCurrency(selectedBarang.hrgSat)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+//                    Spacer(modifier = Modifier.height(8.dp))
+//                    Row(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        horizontalArrangement = Arrangement.SpaceBetween
+//                    ) {
+//                        Text(
+//                            text = "Unit: ${selectedBarang.satKecil}",
+//                            style = MaterialTheme.typography.bodySmall
+//                        )
+//                        Text(
+//                            text = "Price: ${formatCurrency(selectedBarang.hrgSat)}",
+//                            style = MaterialTheme.typography.bodySmall,
+//                            fontWeight = FontWeight.Bold
+//                        )
+//                    }
                 }
             }
 
@@ -197,12 +196,25 @@ fun AddBarangContent(
                         .padding(16.dp)
                 ) {
                     if (selectedBarang.konversi > 1) {
-                        Text(
-                            text = "Qty Besar (${selectedBarang.satBesar})",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ){
+                            Text(
+                                text = "Qty Besar (${selectedBarang.satBesar})",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontFamily = FontFamily.Monospace)
+                            )
+                            Text(
+                                text = formatCurrency(selectedBarang.hrgSat * selectedBarang.konversi),
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Bold)
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(8.dp))
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -229,13 +241,25 @@ fun AddBarangContent(
                             Modifier,
                             DividerDefaults.Thickness,
                             DividerDefaults.color)
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    Text(
-                        text = "Qty Kecil ${selectedBarang.satKecil}",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ){
+                        Text(
+                            text = "Qty Kecil (${selectedBarang.satKecil})",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontFamily = FontFamily.Monospace)
+                        )
+                        Text(
+                            text = formatCurrency(selectedBarang.hrgSat),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Bold)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -276,13 +300,16 @@ fun AddBarangContent(
                         val totalKecil = selectedBarang.hrgSat * qtyKecil
                         val total = totalBesar + totalKecil
                         Text(
-                            text = "Line Total:",
-                            style = MaterialTheme.typography.headlineSmall
+                            text = "Sub Total:",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Bold)
                         )
                         Text(
                             text = formatCurrency(total),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Bold)
                         )
                     }
                 }

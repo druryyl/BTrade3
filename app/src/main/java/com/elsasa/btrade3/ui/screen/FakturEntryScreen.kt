@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -27,6 +28,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +50,10 @@ fun FakturEntryScreen(
 ) {
     val faktur by viewModel.faktur.collectAsStateWithLifecycle()
 
+    val selectedCustomerId = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<String>("selected_customer_id")
+
     val selectedCustomerCode = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.get<String>("selected_customer_code")
@@ -56,17 +62,21 @@ fun FakturEntryScreen(
         ?.savedStateHandle
         ?.get<String>("selected_customer_name")
 
+    val selectedCustomerAddress = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<String>("selected_customer_address")
+
+    val selectedSalesId = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<String>("selected_sales_id")
+
     val selectedSalesName = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.get<String>("selected_sales_name")
 
     val initializationKey = if (fakturId == "new") {
         val fakturId2 = faktur?.fakturId
-        if (fakturId2 == null) {
-            "new"
-        } else {
-            fakturId2
-        }
+        fakturId2 ?: "new"
     } else {
         fakturId
     }
@@ -79,23 +89,32 @@ fun FakturEntryScreen(
     }
 
     // Handle customer selection result
-    LaunchedEffect(selectedCustomerCode, selectedCustomerName) {
-        selectedCustomerCode?.let { code ->
-            selectedCustomerName?.let { name ->
-                viewModel.updateCustomerInfo(code, name)
-                // Clear the saved state to avoid reprocessing
-                navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_customer_code")
-                navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_customer_name")
+    LaunchedEffect(selectedCustomerId, selectedCustomerCode, selectedCustomerName, selectedCustomerAddress) {
+        selectedCustomerId?.let { id ->
+            selectedCustomerCode?.let { code ->
+                selectedCustomerName?.let { name ->
+                    selectedCustomerAddress?.let { address ->
+                        viewModel.updateCustomerInfo(id, code, name, address)
+                        // Clear the saved state to avoid reprocessing
+                        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_customer_id")
+                        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_customer_code")
+                        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_customer_name")
+                        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_customer_address")
+                    }
+                }
             }
         }
     }
 
     // Handle sales selection result
-    LaunchedEffect(selectedSalesName) {
-        selectedSalesName?.let { name ->
-            viewModel.updateSalesInfo(name)
-            // Clear the saved state to avoid reprocessing
-            navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_sales_name")
+    LaunchedEffect(selectedSalesId,selectedSalesName) {
+        selectedSalesId?.let { id ->
+            selectedSalesName?.let { name ->
+                viewModel.updateSalesInfo(id, name)
+                // Clear the saved state to avoid reprocessing
+                navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_sales_id")
+                navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_sales_name")
+            }
         }
     }
 
@@ -137,6 +156,7 @@ fun FakturEntryScreen(
     }
 }
 
+
 @Composable
 fun FakturEntryContent(
     faktur: Faktur,
@@ -149,46 +169,57 @@ fun FakturEntryContent(
     val customerName = faktur.customerName
     val salesName = faktur.salesName
     val userEmail = faktur.userEmail
-    // Log.d("FakturEntryContent", "customerCode=$customerCode, customerName=$customerName, salesPersonName=$salesPersonName")
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(8.dp) // Smaller outer padding for compact look
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (userEmail.isNotEmpty()) {
             // User Email Section
-            Card(elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(12.dp)
                 ) {
                     Text(
                         text = "User Information",
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Signed in as: $userEmail",
+                        text = "Signed in as:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = userEmail,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
         }
+
         // Customer Info Section
-        Card(elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(12.dp)
             ) {
                 Text(
                     text = "Customer Information",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -201,22 +232,26 @@ fun FakturEntryContent(
                             "$customerCode - $customerName"
                         } else {
                             "Select Customer"
-                        }
+                        },
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
         }
 
         // Sales Info Section
-        Card(elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(12.dp)
             ) {
                 Text(
                     text = "Sales Information",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -225,48 +260,58 @@ fun FakturEntryContent(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = salesName.ifEmpty {
-                            "Select Sales Person"
-                        }
+                        text = salesName.ifEmpty { "Select Sales Person" },
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
         }
 
         // Total Amount Section
-        Card(elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(12.dp)
             ) {
                 Text(
                     text = "Order Summary",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Total Amount:")
+                    Text(
+                        text = "Total Amount:",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                     Text(
                         text = formatCurrency(faktur.totalAmount),
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Button(
                     onClick = onViewItems,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("View/Edit Items")
+                    Text("View / Edit Items")
                 }
             }
         }
     }
 }
+
 
 private fun formatCurrency(amount: Double): String {
     val locale = Locale.Builder().setLanguage("id").setRegion("ID").build()

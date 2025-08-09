@@ -2,16 +2,24 @@ package com.elsasa.btrade3.ui.screen
 
 import android.content.Context
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -22,12 +30,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.elsasa.btrade3.model.Customer
@@ -166,7 +180,7 @@ fun CustomerSelectionScreen(
             if (filteredCustomers.isEmpty() && searchText.isNotEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                    contentAlignment = Alignment.Center
                 ) {
                     Text("No customers found")
                 }
@@ -176,12 +190,17 @@ fun CustomerSelectionScreen(
                         CustomerItem(
                             customer = customer,
                             onClick = {
-                                // Navigate back with selected customer
+                                navController.previousBackStackEntry?.savedStateHandle?.set(
+                                    "selected_customer_id", customer.customerId
+                                )
                                 navController.previousBackStackEntry?.savedStateHandle?.set(
                                     "selected_customer_code", customer.customerCode
                                 )
                                 navController.previousBackStackEntry?.savedStateHandle?.set(
                                     "selected_customer_name", customer.customerName
+                                )
+                                navController.previousBackStackEntry?.savedStateHandle?.set(
+                                    "selected_customer_address", customer.alamat
                                 )
                                 navController.popBackStack()
                             }
@@ -199,10 +218,16 @@ fun CustomerSelectionScreen(
                                     recentSearches = recentSearchManager.getRecentSearches()
                                 }
                                 navController.previousBackStackEntry?.savedStateHandle?.set(
+                                    "selected_customer_id", customer.customerId
+                                )
+                                navController.previousBackStackEntry?.savedStateHandle?.set(
                                     "selected_customer_code", customer.customerCode
                                 )
                                 navController.previousBackStackEntry?.savedStateHandle?.set(
                                     "selected_customer_name", customer.customerName
+                                )
+                                navController.previousBackStackEntry?.savedStateHandle?.set(
+                                    "selected_customer_address", customer.alamat
                                 )
                                 navController.popBackStack()
                             }
@@ -214,34 +239,61 @@ fun CustomerSelectionScreen(
     }
 }
 
-
-
 @Composable
 fun CustomerItem(
     customer: Customer,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = MaterialTheme.shapes.medium,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(12.dp)
         ) {
+            // Customer Name - Single line with ellipsis
             Text(
-                text = "${customer.customerCode} - ${customer.customerName}",
-                style = MaterialTheme.typography.headlineSmall
+                text = customer.customerName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(bottom = 4.dp)
             )
-            Spacer(modifier = Modifier.height(4.dp))
+
+            // Customer Code - Inline with smaller text
             Text(
-                text = customer.alamat,
-                style = MaterialTheme.typography.bodySmall
+                text = customer.customerCode,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
+
+            // Address - Compact single line
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Address",
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = customer.alamat,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
