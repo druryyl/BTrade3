@@ -9,6 +9,7 @@ import com.elsasa.btrade3.repository.FakturRepository
 import com.elsasa.btrade3.ui.getUserEmail
 import com.elsasa.btrade3.util.FriendlyIdGenerator
 import com.elsasa.btrade3.util.LastSelectionManager
+import com.elsasa.btrade3.util.UlidHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,10 +46,11 @@ class FakturEntryViewModel(
         val lastSalesPersonName = lastSelectionManager.getLastSalesPersonName() ?: ""
 
         val fakturId = idGenerator.generateDateSequenceId(context)
+        val globalId = UlidHelper.generate()
 
         val newFaktur =  Faktur(
             fakturId = fakturId,
-            globalId = "",
+            globalId = globalId,
             customerId = "",
             customerCode = "",
             customerName = "",
