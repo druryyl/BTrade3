@@ -1,5 +1,7 @@
 package com.elsasa.btrade3.ui.component
 
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,11 +16,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Face
+import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,6 +42,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,71 +56,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@Composable
-fun FakturCard(
-    faktur: Faktur,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onEditClick() },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = faktur.customerName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = faktur.customerCode,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Date: ${faktur.fakturDate}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    "Total Amount:",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = formatCurrency(faktur.totalAmount),
-                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-    }
-}
 
 @Composable
-fun ModernFakturCard(
+fun ModernFakturCard2(
     faktur: Faktur,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
@@ -140,7 +87,7 @@ fun ModernFakturCard(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "ID: ${faktur.fakturId}",
+                        text = "ID: ${faktur.fakturLocalCode} / ${faktur.fakturId}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -255,63 +202,119 @@ fun ModernFakturCard(
 }
 
 @Composable
-fun CompactFakturCard(
+fun ModernFakturCard(
     faktur: Faktur,
     onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onSyncClick: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onEditClick),
-        shape = RoundedCornerShape(12.dp), // Slightly smaller radius
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp) // Tighter spacing
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            // Row 1: Customer Name and Status
+            // Row 1: FakturLocalCode (left) and FakturId (right)
             Row(
-                verticalAlignment = Alignment.Top,
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = faktur.fakturLocalCode,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
+                        .clickable {
+                            clipboardManager.setText(AnnotatedString(faktur.fakturId))
+                            Toast
+                                .makeText(context, "Faktur ID copied", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = faktur.fakturId,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            // Row 2: Customer Name (left) and Status Chip (right)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = faktur.customerName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
                     modifier = Modifier.weight(1f)
                 )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
                 StatusChip(status = faktur.statusSync)
             }
 
-            // Row 2: Address and Date
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            // Row 3: Address
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.LocationOn,
                     contentDescription = "Address",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp)
+                    tint = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.size(14.dp)
                 )
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(4.dp))
                 Text(
                     text = faktur.customerAddress,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.width(8.dp))
+            }
+
+            // Row 4: Sales Name + Date
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Outlined.Face,
+                    contentDescription = "Sales",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = faktur.salesName,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(Modifier.width(12.dp))
                 Icon(
                     imageVector = Icons.Outlined.DateRange,
                     contentDescription = "Date",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(14.dp)
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
@@ -321,71 +324,97 @@ fun CompactFakturCard(
                 )
             }
 
-            // Row 3: Salesperson, Total Amount, and Menu
+            // Row 5: Divider
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+            // Row 6: Number of Items + Total Amount + Menu
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Face,
-                    contentDescription = "Salesperson",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = faktur.salesName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.List,
+                        contentDescription = "Items",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = "5 items",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
 
-                Text(
-                    text = formatCurrency(faktur.totalAmount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = formatCurrency(faktur.totalAmount),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
 
-                // Context menu for actions
-                Box(modifier = Modifier.offset(x = 8.dp)) { // Nudge the menu icon out slightly
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More options"
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Edit") },
-                            onClick = {
-                                onEditClick()
-                                showMenu = false
-                            },
-                            leadingIcon = { Icon(Icons.Default.Edit, "Edit") }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
-                            onClick = {
-                                onDeleteClick()
-                                showMenu = false
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    "Delete",
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        )
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More options",
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Edit") },
+                                onClick = {
+                                    onEditClick()
+                                    showMenu = false
+                                },
+                                leadingIcon = { Icon(Icons.Default.Edit, "Edit") }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                                onClick = {
+                                    onDeleteClick()
+                                    showMenu = false
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        "Delete",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Sync", color = MaterialTheme.colorScheme.tertiary) },
+                                onClick = {
+                                    onSyncClick()
+                                    showMenu = false
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Refresh,
+                                        "Sync",
+                                        tint = MaterialTheme.colorScheme.tertiary
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
+
 
 
 @Composable

@@ -12,8 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class AddBarangViewModel(
-    private val fakturRepository: FakturRepository,
-    //private val barangRepository: BarangRepository
+    private val fakturRepository: FakturRepository
 ) : ViewModel() {
     private val _fakturId = MutableStateFlow<String?>(null)
     val fakturId: StateFlow<String?> = _fakturId.asStateFlow()
@@ -94,9 +93,11 @@ class AddBarangViewModel(
         val qtyBesar = _qtyBesar.value
         val qtyKecil = _qtyKecil.value
 
+
         viewModelScope.launch {
             // Get the current items to determine the next sequence number
             val currentItems = fakturRepository.getFakturItemsByFakturId(fakturId).first()
+            val faktur = fakturRepository.getFakturById(fakturId)
             val nextNoUrut = currentItems.size + 1
 
             val lineTotal1 = (qtyBesar * barang.konversi * barang.hrgSat)

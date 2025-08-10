@@ -181,7 +181,8 @@ fun FakturListScreen(
                         },
                         onDeleteClick = {
                             fakturToDelete = faktur // Trigger dialog
-                        }
+                        },
+                        onSyncClick = {}
                     )
                 }
             }

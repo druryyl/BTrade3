@@ -2,12 +2,35 @@ package com.elsasa.btrade3.util
 
 import android.content.Context
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.random.Random
 
 class FriendlyIdGenerator {
 
+
+    fun generateCompactDateSequenceId(context: Context): String {
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR) % 100 // Last 2 digits of year
+        val month = calendar.get(Calendar.MONTH) + 1 // 1-based month
+        val monthHex = Integer.toHexString(month).uppercase()
+        val dateKey = "$year$monthHex"
+
+        val sharedPref = context.getSharedPreferences("faktur_sequence", Context.MODE_PRIVATE)
+        val lastDateKey = sharedPref.getString("last_date_key", "")
+        val lastSequence = sharedPref.getInt("last_sequence", 0)
+
+        val newSequence = if (lastDateKey == dateKey) lastSequence + 1 else 1
+
+        sharedPref.edit().apply {
+            putString("last_date_key", dateKey)
+            putInt("last_sequence", newSequence)
+            apply()
+        }
+
+        return "$dateKey-${String.format(Locale.ROOT, "%03d", newSequence)}"
+    }
     // Option 1: Date-based with sequence number
     // Format: YYYYMMDD-001, YYYYMMDD-002, etc.
     fun generateDateSequenceId(context: Context): String {
@@ -32,7 +55,7 @@ class FriendlyIdGenerator {
             apply()
         }
 
-        return "$currentDate-${String.format("%03d", newSequence)}"
+        return "$currentDate-${String.format(Locale.ROOT, "%03d", newSequence)}"
     }
 
     // Option 2: Prefix + Timestamp + Random suffix

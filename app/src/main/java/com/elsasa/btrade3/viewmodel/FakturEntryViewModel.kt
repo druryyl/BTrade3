@@ -45,12 +45,12 @@ class FakturEntryViewModel(
         val lastSalesPersonId = lastSelectionManager.getLastSalesPersonId() ?: ""
         val lastSalesPersonName = lastSelectionManager.getLastSalesPersonName() ?: ""
 
-        val fakturId = idGenerator.generateDateSequenceId(context)
-        val globalId = UlidHelper.generate()
+        val fakturId = UlidHelper.generate()
+        val fakturLocalCode = idGenerator.generateCompactDateSequenceId(context)
 
         val newFaktur =  Faktur(
             fakturId = fakturId,
-            globalId = globalId,
+            fakturLocalCode = fakturLocalCode,
             customerId = "",
             customerCode = "",
             customerName = "",
