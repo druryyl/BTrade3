@@ -42,6 +42,7 @@ import androidx.navigation.NavController
 import com.elsasa.btrade3.model.Faktur
 import com.elsasa.btrade3.ui.component.ModernFakturCard
 import com.elsasa.btrade3.ui.logoutUser
+import com.elsasa.btrade3.util.MovableFloatingActionButton
 import com.elsasa.btrade3.viewmodel.FakturListViewModel
 import java.text.NumberFormat
 import java.util.Locale
@@ -119,13 +120,20 @@ fun FakturListScreen(
                 }
             )
         },
+//        floatingActionButton = {
+//            FloatingActionButton(
+//                onClick = { navController.navigate("faktur_entry/new") },
+//                containerColor = MaterialTheme.colorScheme.primary
+//            ) {
+//                Icon(Icons.Default.Add, contentDescription = "Add")
+//            }
+//        }
         floatingActionButton = {
-            FloatingActionButton(
+            MovableFloatingActionButton(
                 onClick = { navController.navigate("faktur_entry/new") },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
+                modifier = Modifier
+                    .padding(end = 16.dp, bottom = 16.dp) // Initial position
+            )
         }
     ) { padding ->
         if (fakturs.isEmpty()) {

@@ -48,6 +48,7 @@ class FakturEntryViewModel(
 
         val newFaktur =  Faktur(
             fakturId = fakturId,
+            globalId = "",
             customerId = "",
             customerCode = "",
             customerName = "",
@@ -72,8 +73,7 @@ class FakturEntryViewModel(
             customerId = customerId,
             customerCode = customerCode,
             customerName = customerName,
-            customerAddress = customerAddress
-        )
+            customerAddress = customerAddress)
         _faktur.value = updatedFaktur
         saveFakturAndReload(updatedFaktur)
 
@@ -82,7 +82,10 @@ class FakturEntryViewModel(
 
     fun updateSalesInfo(salesId: String, salesName: String) {
         val current = _faktur.value ?: return
-        val updatedFaktur = current.copy(salesId = salesId, salesName = salesName,)
+        val updatedFaktur = current.copy(
+            salesId = salesId,
+            salesName = salesName
+        )
         _faktur.value = updatedFaktur
         saveFakturAndReload(updatedFaktur)
 

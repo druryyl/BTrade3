@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 data class Faktur(
     @PrimaryKey
     val fakturId: String,
+    val globalId: String,
     val customerId: String,
     val customerCode: String,
     val customerName: String,
