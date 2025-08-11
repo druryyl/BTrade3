@@ -3,8 +3,8 @@ package com.elsasa.btrade3.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elsasa.btrade3.model.Barang
-import com.elsasa.btrade3.model.FakturItem
-import com.elsasa.btrade3.repository.FakturRepository
+import com.elsasa.btrade3.model.OrderItem
+import com.elsasa.btrade3.repository.OrderRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class AddBarangViewModel(
-    private val fakturRepository: FakturRepository
+    private val orderRepository: OrderRepository
 ) : ViewModel() {
     private val _fakturId = MutableStateFlow<String?>(null)
     val fakturId: StateFlow<String?> = _fakturId.asStateFlow()
@@ -27,7 +27,7 @@ class AddBarangViewModel(
     val qtyKecil: StateFlow<Int> = _qtyKecil.asStateFlow()
 
     private val _editingItemId: MutableStateFlow<String?> = MutableStateFlow(null)
-    private val _originalFakturItem: MutableStateFlow<FakturItem?> = MutableStateFlow(null)
+    private val _originalOrderItem: MutableStateFlow<OrderItem?> = MutableStateFlow(null)
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -57,15 +57,15 @@ class AddBarangViewModel(
     fun loadItemForEditing(itemId: String){
         viewModelScope.launch {
             _fakturId.value?.let { fakturId ->
-                val item = fakturRepository.getFakturItemsByFakturId(fakturId).first()
+                val item = orderRepository.getOrderItemsByOrderId(fakturId).first()
                 val itemToEdit = item.find{
-                    "${it.fakturId}-${it.noUrut}" == itemId ||
+                    "${it.orderId}-${it.noUrut}" == itemId ||
                     it.noUrut.toString() == itemId
                 }
 
                 itemToEdit?.let { item ->
                     _editingItemId.value = itemId
-                    _originalFakturItem.value = item
+                    _originalOrderItem.value = item
 
                     val barang = Barang(
                             brgId = item.brgId,
@@ -96,15 +96,15 @@ class AddBarangViewModel(
 
         viewModelScope.launch {
             // Get the current items to determine the next sequence number
-            val currentItems = fakturRepository.getFakturItemsByFakturId(fakturId).first()
-            val faktur = fakturRepository.getFakturById(fakturId)
+            val currentItems = orderRepository.getOrderItemsByOrderId(fakturId).first()
+            val faktur = orderRepository.getOrderById(fakturId)
             val nextNoUrut = currentItems.size + 1
 
             val lineTotal1 = (qtyBesar * barang.konversi * barang.hrgSat)
             val lineTotal2 = (qtyKecil * barang.hrgSat)
             val lineTotal = lineTotal1 + lineTotal2
-            val fakturItem = FakturItem(
-                fakturId = fakturId,
+            val orderItem = OrderItem(
+                orderId = fakturId,
                 noUrut = nextNoUrut,
                 brgId = barang.brgId,
                 brgCode = barang.brgCode,
@@ -119,7 +119,7 @@ class AddBarangViewModel(
                 lineTotal = lineTotal
             )
 
-            fakturRepository.insertFakturItem(fakturItem)
+            orderRepository.insertOrderItem(orderItem)
             updateTotalAmount()
         }
     }
@@ -129,14 +129,14 @@ class AddBarangViewModel(
         val barang = _selectedBarang.value ?: return
         val qtyBesar = _qtyBesar.value
         val qtyKecil = _qtyKecil.value
-        val originalItem = _originalFakturItem.value ?: return
+        val originalItem = _originalOrderItem.value ?: return
 
         viewModelScope.launch {
             val lineTotal1 = (qtyBesar * barang.konversi * barang.hrgSat)
             val lineTotal2 = (qtyKecil * barang.hrgSat)
             val lineTotal = lineTotal1 + lineTotal2
-            val fakturItem = FakturItem(
-                fakturId = fakturId,
+            val orderItem = OrderItem(
+                orderId = fakturId,
                 noUrut = originalItem.noUrut,
                 brgId = barang.brgId,
                 brgCode = barang.brgCode,
@@ -151,7 +151,7 @@ class AddBarangViewModel(
                 lineTotal = lineTotal
             )
 
-            fakturRepository.updateFakturItem(fakturItem)
+            orderRepository.updateOrderItem(orderItem)
 
             // Update total amount in faktur
             updateTotalAmount()
@@ -161,9 +161,9 @@ class AddBarangViewModel(
     private fun updateTotalAmount(){
         val fakturId = _fakturId.value ?: return
         viewModelScope.launch {
-            val total = fakturRepository.calculateTotalAmount(fakturId)
-            fakturRepository.getFakturById(fakturId)?.let { faktur ->
-                fakturRepository.updateFaktur(faktur.copy(
+            val total = orderRepository.calculateTotalAmount(fakturId)
+            orderRepository.getOrderById(fakturId)?.let { faktur ->
+                orderRepository.updateOrder(faktur.copy(
                     totalAmount = total
                 ))
             }

@@ -45,7 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.elsasa.btrade3.model.FakturItem
+import com.elsasa.btrade3.model.OrderItem
 import com.elsasa.btrade3.viewmodel.ItemListViewModel
 import java.text.NumberFormat
 import java.util.Locale
@@ -59,7 +59,7 @@ fun ItemListScreen(
 ) {
     val items by viewModel.items.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var itemToDelete by remember { mutableStateOf<FakturItem?>(null) }
+    var itemToDelete by remember { mutableStateOf<OrderItem?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.setFakturId(fakturId)
@@ -108,7 +108,7 @@ fun ItemListScreen(
                         ItemCard2(
                             item = item,
                             onEditClick = {
-                                val itemId = "${item.fakturId}-${item.noUrut}"
+                                val itemId = "${item.orderId}-${item.noUrut}"
                                 navController.navigate("add_barang/$fakturId?itemId=$itemId")
                             },
                             onDeleteClick = {
@@ -170,7 +170,7 @@ fun ItemListScreen(
 
 @Composable
 fun ItemCard2(
-    item: FakturItem,
+    item: OrderItem,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -340,8 +340,8 @@ fun TotalAmountCard(
 @Composable
 fun ItemCardPreview() {
     ItemCard2(
-        FakturItem(
-            fakturId = "123",
+        OrderItem(
+            orderId = "123",
             noUrut = 1,
             brgId = "BRG001",
             brgCode = "CD123",

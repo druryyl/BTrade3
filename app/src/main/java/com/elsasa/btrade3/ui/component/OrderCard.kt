@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,7 +21,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Face
-import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -46,11 +43,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.elsasa.btrade3.model.Faktur
+import com.elsasa.btrade3.model.Order
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -58,152 +54,8 @@ import java.util.Locale
 
 
 @Composable
-fun ModernFakturCard2(
-    faktur: Faktur,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
-) {
-    var showMenu by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onEditClick),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-        ) {
-            // Top section: Customer Name, Faktur ID, and Status
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = faktur.customerName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "ID: ${faktur.fakturLocalCode} / ${faktur.fakturId}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(Modifier.width(8.dp))
-                StatusChip(status = faktur.statusSync)
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // Middle section: Address and Salesperson Info
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.LocationOn,
-                        contentDescription = "Address",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = faktur.customerAddress,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.Face,
-                        contentDescription = "Sales",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "Sales: ${faktur.salesName}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // Divider for visual separation
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-            Spacer(Modifier.height(8.dp))
-
-            // Bottom section: Date, Total Amount, and Actions Menu
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Outlined.DateRange,
-                    contentDescription = "Date",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = faktur.fakturDate,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = formatCurrency(faktur.totalAmount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Box {
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More options"
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Edit") },
-                            onClick = {
-                                onEditClick()
-                                showMenu = false
-                            },
-                            leadingIcon = { Icon(Icons.Default.Edit, "Edit") }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
-                            onClick = {
-                                onDeleteClick()
-                                showMenu = false
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    "Delete",
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ModernFakturCard(
-    faktur: Faktur,
+fun ModernOrderCard(
+    order: Order,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onSyncClick: () -> Unit
@@ -233,7 +85,7 @@ fun ModernFakturCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = faktur.fakturLocalCode,
+                    text = order.orderLocalId,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -243,7 +95,7 @@ fun ModernFakturCard(
                         .clip(RoundedCornerShape(4.dp))
                         .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
                         .clickable {
-                            clipboardManager.setText(AnnotatedString(faktur.fakturId))
+                            clipboardManager.setText(AnnotatedString(order.orderId))
                             Toast
                                 .makeText(context, "Faktur ID copied", Toast.LENGTH_SHORT)
                                 .show()
@@ -251,7 +103,7 @@ fun ModernFakturCard(
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text = faktur.fakturId,
+                        text = order.orderId,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -265,7 +117,7 @@ fun ModernFakturCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = faktur.customerName,
+                    text = order.customerName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -275,7 +127,7 @@ fun ModernFakturCard(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                StatusChip(status = faktur.statusSync)
+                StatusChip(status = order.statusSync)
             }
 
             // Row 3: Address
@@ -288,7 +140,7 @@ fun ModernFakturCard(
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
-                    text = faktur.customerAddress,
+                    text = order.customerAddress,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
@@ -306,7 +158,7 @@ fun ModernFakturCard(
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
-                    text = faktur.salesName,
+                    text = order.salesName,
                     style = MaterialTheme.typography.bodySmall
                 )
                 Spacer(Modifier.width(12.dp))
@@ -318,7 +170,7 @@ fun ModernFakturCard(
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
-                    text = faktur.fakturDate,
+                    text = order.orderDate,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -335,7 +187,7 @@ fun ModernFakturCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Outlined.List,
+                        imageVector = Icons.AutoMirrored.Outlined.List,
                         contentDescription = "Items",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(14.dp)
@@ -350,7 +202,7 @@ fun ModernFakturCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = formatCurrency(faktur.totalAmount),
+                        text = formatCurrency(order.totalAmount),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -420,8 +272,8 @@ fun ModernFakturCard(
 @Composable
 fun StatusChip(status: String) {
     val (backgroundColor, textColor) = when (status) {
-        "SYNCED" -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
-        "OPEN" -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+        "SENT" -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+        "DRAFT" -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
         else -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
     }
 

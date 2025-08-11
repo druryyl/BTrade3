@@ -2,15 +2,15 @@ package com.elsasa.btrade3.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.elsasa.btrade3.repository.OrderRepository
+import com.elsasa.btrade3.repository.OrderSyncRepository
 
-class ItemListViewModelFactory(
-    private val repository: OrderRepository
+class OrderSyncViewModelFactory(
+    private val orderSyncRepository: OrderSyncRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ItemListViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(OrderSyncViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ItemListViewModel(repository) as T
+            return OrderSyncViewModel(orderSyncRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

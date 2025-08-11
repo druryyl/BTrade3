@@ -5,17 +5,17 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 
 @Entity(
-    tableName = "faktur_item_table",
-    primaryKeys = ["fakturId", "noUrut"],
+    tableName = "order_item_table",
+    primaryKeys = ["orderId", "noUrut"],
     foreignKeys = [ForeignKey(
-        entity = Faktur::class,
-        parentColumns = ["fakturId"],
-        childColumns = ["fakturId"],
+        entity = Order::class,
+        parentColumns = ["orderId"],
+        childColumns = ["orderId"],
         onDelete = ForeignKey.CASCADE
     )]
 )
-data class FakturItem(
-    val fakturId: String,
+data class OrderItem(
+    val orderId: String,
     val noUrut: Int,
     val brgId: String,
     val brgCode: String,

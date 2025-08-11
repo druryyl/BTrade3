@@ -2,8 +2,8 @@ package com.elsasa.btrade3.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.elsasa.btrade3.model.FakturItem
-import com.elsasa.btrade3.repository.FakturRepository
+import com.elsasa.btrade3.model.OrderItem
+import com.elsasa.btrade3.repository.OrderRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class ItemListViewModel(
-    private val repository: FakturRepository
+    private val repository: OrderRepository
 ) : ViewModel() {
     private val _fakturId = MutableStateFlow<String?>(null)
     val fakturId: StateFlow<String?> = _fakturId.asStateFlow()
 
-    private val _items = MutableStateFlow<List<FakturItem>>(emptyList())
-    val items: StateFlow<List<FakturItem>> = _items.asStateFlow()
+    private val _items = MutableStateFlow<List<OrderItem>>(emptyList())
+    val items: StateFlow<List<OrderItem>> = _items.asStateFlow()
 
     fun setFakturId(fakturId: String) {
         _fakturId.value = fakturId
@@ -26,15 +26,15 @@ class ItemListViewModel(
 
     private fun loadItems(fakturId: String) {
         viewModelScope.launch {
-            repository.getFakturItemsByFakturId(fakturId).collectLatest { itemList ->
+            repository.getOrderItemsByOrderId(fakturId).collectLatest { itemList ->
                 _items.value = itemList
             }
         }
     }
 
-    fun deleteItem(item: FakturItem) {
+    fun deleteItem(item: OrderItem) {
         viewModelScope.launch {
-            repository.deleteFakturItem(item)
+            repository.deleteOrderItem(item)
             updateTotalAmount()
         }
     }
@@ -43,8 +43,8 @@ class ItemListViewModel(
         val id = _fakturId.value ?: return
         viewModelScope.launch {
             val total = repository.calculateTotalAmount(id)
-            repository.getFakturById(id)?.let { faktur ->
-                repository.updateFaktur(faktur.copy(totalAmount = total))
+            repository.getOrderById(id)?.let { faktur ->
+                repository.updateOrder(faktur.copy(totalAmount = total))
             }
         }
     }

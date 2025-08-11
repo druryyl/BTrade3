@@ -14,17 +14,19 @@ import com.elsasa.btrade3.database.AppDatabase
 import com.elsasa.btrade3.network.NetworkModule
 import com.elsasa.btrade3.repository.BarangRepository
 import com.elsasa.btrade3.repository.CustomerRepository
-import com.elsasa.btrade3.repository.FakturRepository
+import com.elsasa.btrade3.repository.OrderRepository
 import com.elsasa.btrade3.repository.NetworkRepository
+import com.elsasa.btrade3.repository.OrderSyncRepository
 import com.elsasa.btrade3.repository.SalesPersonRepository
 import com.elsasa.btrade3.repository.SyncRepository
 import com.elsasa.btrade3.ui.screen.AddBarangScreen
 import com.elsasa.btrade3.ui.screen.BarangSelectionScreen
 import com.elsasa.btrade3.ui.screen.CustomerSelectionScreen
-import com.elsasa.btrade3.ui.screen.FakturEntryScreen
-import com.elsasa.btrade3.ui.screen.FakturListScreen
+import com.elsasa.btrade3.ui.screen.OrderEntryScreen
+import com.elsasa.btrade3.ui.screen.OrderListScreen
 import com.elsasa.btrade3.ui.screen.ItemListScreen
 import com.elsasa.btrade3.ui.screen.LoginScreen
+import com.elsasa.btrade3.ui.screen.OrderSyncScreen
 import com.elsasa.btrade3.ui.screen.SalesSelectionScreen
 import com.elsasa.btrade3.ui.screen.SyncScreen
 import com.elsasa.btrade3.viewmodel.AddBarangViewModel
@@ -33,12 +35,14 @@ import com.elsasa.btrade3.viewmodel.BarangSelectionViewModel
 import com.elsasa.btrade3.viewmodel.BarangSelectionViewModelFactory
 import com.elsasa.btrade3.viewmodel.CustomerSelectionViewModel
 import com.elsasa.btrade3.viewmodel.CustomerSelectionViewModelFactory
-import com.elsasa.btrade3.viewmodel.FakturEntryViewModel
-import com.elsasa.btrade3.viewmodel.FakturEntryViewModelFactory
-import com.elsasa.btrade3.viewmodel.FakturListViewModel
-import com.elsasa.btrade3.viewmodel.FakturListViewModelFactory
+import com.elsasa.btrade3.viewmodel.OrderEntryViewModel
+import com.elsasa.btrade3.viewmodel.OrderEntryViewModelFactory
+import com.elsasa.btrade3.viewmodel.OrderListViewModel
+import com.elsasa.btrade3.viewmodel.OrderListViewModelFactory
 import com.elsasa.btrade3.viewmodel.ItemListViewModel
 import com.elsasa.btrade3.viewmodel.ItemListViewModelFactory
+import com.elsasa.btrade3.viewmodel.OrderSyncViewModel
+import com.elsasa.btrade3.viewmodel.OrderSyncViewModelFactory
 import com.elsasa.btrade3.viewmodel.SalesSelectionViewModel
 import com.elsasa.btrade3.viewmodel.SalesSelectionViewModelFactory
 import com.elsasa.btrade3.viewmodel.SyncViewModel
@@ -50,9 +54,9 @@ fun AppNavigation(
     database: AppDatabase
 ) {
     val context = LocalContext.current
-    val fakturRepository = FakturRepository(
-        database.fakturDao(),
-        database.fakturItemDao()
+    val orderRepository = OrderRepository(
+        database.orderDao(),
+        database.orderItemDao()
     )
     val barangRepository = BarangRepository(database.barangDao())
     val customerRepository = CustomerRepository(database.customerDao())
@@ -61,6 +65,7 @@ fun AppNavigation(
     val apiService = NetworkModule.createApiService()
     val networkRepository = NetworkRepository(apiService)
     val syncRepository = SyncRepository(networkRepository, barangRepository, customerRepository, salesPersonRepository)
+    val orderSyncRepository = OrderSyncRepository(apiService, orderRepository)
 
     val isLoggedIn = remember { checkIfUserIsLoggedIn(context) }
 
@@ -78,22 +83,22 @@ fun AppNavigation(
         }
 
         composable("faktur_list") {
-            val viewModel: FakturListViewModel = viewModel(
-                factory = FakturListViewModelFactory(fakturRepository)
+            val viewModel: OrderListViewModel = viewModel(
+                factory = OrderListViewModelFactory(orderRepository)
             )
-            FakturListScreen(navController, viewModel)
+            OrderListScreen(navController, viewModel)
         }
 
         composable(
-            "faktur_entry/{fakturId}",
-            arguments = listOf(navArgument("fakturId") { type = NavType.StringType })
+            "faktur_entry/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val fakturId = backStackEntry.arguments?.getString("fakturId")
+            val fakturId = backStackEntry.arguments?.getString("orderId")
             val context = LocalContext.current // Get context here
-            val viewModel: FakturEntryViewModel = viewModel(
-                factory = FakturEntryViewModelFactory(fakturRepository, context)
+            val viewModel: OrderEntryViewModel = viewModel(
+                factory = OrderEntryViewModelFactory(orderRepository, context)
             )
-            FakturEntryScreen(navController, viewModel, fakturId)
+            OrderEntryScreen(navController, viewModel, fakturId)
         }
 
         composable("customer_selection") {
@@ -111,27 +116,27 @@ fun AppNavigation(
         }
 
         composable(
-            "item_list/{fakturId}",
-            arguments = listOf(navArgument("fakturId") { type = NavType.StringType })
+            "item_list/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val fakturId = backStackEntry.arguments?.getString("fakturId") ?: ""
+            val fakturId = backStackEntry.arguments?.getString("orderId") ?: ""
             val viewModel: ItemListViewModel = viewModel(
-                factory = ItemListViewModelFactory(fakturRepository)
+                factory = ItemListViewModelFactory(orderRepository)
             )
             ItemListScreen(navController, viewModel, fakturId)
         }
 
         composable(
-            "add_barang/{fakturId}?itemId={itemId}",
+            "add_barang/{orderId}?itemId={itemId}",
             arguments = listOf(
-                navArgument("fakturId") { type = NavType.StringType },
+                navArgument("orderId") { type = NavType.StringType },
                 navArgument("itemId") { type = NavType.StringType; defaultValue = "" }
             )
         ) { backStackEntry ->
-            val fakturId = backStackEntry.arguments?.getString("fakturId") ?: ""
+            val fakturId = backStackEntry.arguments?.getString("orderId") ?: ""
             val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
             val viewModel: AddBarangViewModel = viewModel(
-                factory = AddBarangViewModelFactory(fakturRepository) // Updated
+                factory = AddBarangViewModelFactory(orderRepository) // Updated
             )
             AddBarangScreen(navController, viewModel, fakturId, itemId.ifEmpty { null })
         }
@@ -147,6 +152,12 @@ fun AppNavigation(
                 factory = SyncViewModelFactory(syncRepository)
             )
             SyncScreen(navController, viewModel)
+        }
+        composable("order_sync") {
+            val viewModel: OrderSyncViewModel = viewModel(
+                factory = OrderSyncViewModelFactory(orderSyncRepository)
+            )
+            OrderSyncScreen(navController, viewModel)
         }
     }
 }

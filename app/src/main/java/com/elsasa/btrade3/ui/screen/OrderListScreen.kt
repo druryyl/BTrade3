@@ -13,13 +13,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,48 +38,48 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.elsasa.btrade3.model.Faktur
-import com.elsasa.btrade3.ui.component.ModernFakturCard
+import com.elsasa.btrade3.model.Order
+import com.elsasa.btrade3.ui.component.ModernOrderCard
 import com.elsasa.btrade3.ui.logoutUser
 import com.elsasa.btrade3.util.MovableFloatingActionButton
-import com.elsasa.btrade3.viewmodel.FakturListViewModel
+import com.elsasa.btrade3.viewmodel.OrderListViewModel
 import java.text.NumberFormat
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FakturListScreen(
+fun OrderListScreen(
     navController: NavController,
-    viewModel: FakturListViewModel,
+    viewModel: OrderListViewModel,
     context: Context = LocalContext.current
 ) {
-    val fakturs by viewModel.fakturs.collectAsState()
+    val orders by viewModel.orders.collectAsState()
 
-    var fakturToDelete by remember { mutableStateOf<Faktur?>(null) }
+    var orderToDelete by remember { mutableStateOf<Order?>(null) }
 
     // Delete confirmation dialog
-    if (fakturToDelete != null) {
+    if (orderToDelete != null) {
         AlertDialog(
-            onDismissRequest = { fakturToDelete = null },
+            onDismissRequest = { orderToDelete = null },
             title = { Text("Delete Sales Order") },
             text = {
                 Text(
                     "Are you sure you want to delete this sales order?\n\n" +
-                            (fakturToDelete?.customerName ?: "")
+                            (orderToDelete?.customerName ?: "")
                 )
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        fakturToDelete?.let { viewModel.deleteFaktur(it) }
-                        fakturToDelete = null
+                        orderToDelete?.let { viewModel.deleteOrder(it) }
+                        orderToDelete = null
                     }
                 ) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { fakturToDelete = null }) {
+                TextButton(onClick = { orderToDelete = null }) {
                     Text("Cancel")
                 }
             }
@@ -117,7 +116,13 @@ fun FakturListScreen(
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
-                }
+                    IconButton(onClick = {
+                        navController.navigate("order_sync")
+                    }) {
+                        Icon(Icons.Default.MailOutline, contentDescription = "Sync Orders")
+                    }
+                },
+
             )
         },
 //        floatingActionButton = {
@@ -136,7 +141,7 @@ fun FakturListScreen(
             )
         }
     ) { padding ->
-        if (fakturs.isEmpty()) {
+        if (orders.isEmpty()) {
             // Empty State
             Box(
                 modifier = Modifier
@@ -173,14 +178,14 @@ fun FakturListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(8.dp)
             ) {
-                items(fakturs) { faktur ->
-                    ModernFakturCard(
-                        faktur = faktur,
+                items(orders) { faktur ->
+                    ModernOrderCard(
+                        order = faktur,
                         onEditClick = {
-                            navController.navigate("faktur_entry/${faktur.fakturId}")
+                            navController.navigate("faktur_entry/${faktur.orderId}")
                         },
                         onDeleteClick = {
-                            fakturToDelete = faktur // Trigger dialog
+                            orderToDelete = faktur // Trigger dialog
                         },
                         onSyncClick = {}
                     )

@@ -35,20 +35,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.elsasa.btrade3.model.Faktur
-import com.elsasa.btrade3.viewmodel.FakturEntryViewModel
+import com.elsasa.btrade3.model.Order
+import com.elsasa.btrade3.viewmodel.OrderEntryViewModel
 import java.text.NumberFormat
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FakturEntryScreen(
+fun OrderEntryScreen(
     navController: NavController,
-    viewModel: FakturEntryViewModel,
-    fakturId: String?,
+    viewModel: OrderEntryViewModel,
+    orderId: String?,
     context: Context = LocalContext.current
 ) {
-    val faktur by viewModel.faktur.collectAsStateWithLifecycle()
+
+    val order by viewModel.order.collectAsStateWithLifecycle()
 
     val selectedCustomerId = navController.currentBackStackEntry
         ?.savedStateHandle
@@ -74,17 +75,17 @@ fun FakturEntryScreen(
         ?.savedStateHandle
         ?.get<String>("selected_sales_name")
 
-    val initializationKey = if (fakturId == "new") {
-        val fakturId2 = faktur?.fakturId
-        fakturId2 ?: "new"
+    val initializationKey = if (orderId == "new") {
+        val orderId2 = order?.orderId
+        orderId2 ?: "new"
     } else {
-        fakturId
+        orderId
     }
     LaunchedEffect(initializationKey) {
         if (initializationKey == "new") {
-            viewModel.createNewFaktur(context)
+            viewModel.createNewOrder(context)
         } else {
-            initializationKey?.let { viewModel.loadFaktur(it) }
+            initializationKey?.let { viewModel.loadOrder(it) }
         }
     }
 
@@ -121,7 +122,7 @@ fun FakturEntryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (fakturId == "new") "New Sales Order" else "Edit Sales Order") },
+                title = { Text(if (orderId == "new") "New Sales Order" else "Edit Sales Order") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -130,25 +131,25 @@ fun FakturEntryScreen(
             )
         }
     ) { padding ->
-        faktur?.let { fakturData ->
+        order?.let { orderData ->
             FakturEntryContent(
-                faktur = fakturData,
+                order = orderData,
                 onCustomerSelect = {
                     navController.navigate("customer_selection") {
-                        popUpTo("faktur_entry") { saveState = true }
+                        popUpTo("order_entry") { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
                 },
                 onSalesSelect = {
                     navController.navigate("sales_selection") {
-                        popUpTo("faktur_entry") { saveState = true }
+                        popUpTo("order_entry") { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
                 },
                 onViewItems = {
-                    navController.navigate("item_list/${fakturData.fakturId}")
+                    navController.navigate("item_list/${orderData.orderId}")
                 },
                 modifier = Modifier.padding(padding)
             )
@@ -159,16 +160,16 @@ fun FakturEntryScreen(
 
 @Composable
 fun FakturEntryContent(
-    faktur: Faktur,
+    order: Order,
     onCustomerSelect: () -> Unit,
     onSalesSelect: () -> Unit,
     onViewItems: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val customerCode = faktur.customerCode
-    val customerName = faktur.customerName
-    val salesName = faktur.salesName
-    val userEmail = faktur.userEmail
+    val customerCode = order.customerCode
+    val customerName = order.customerName
+    val salesName = order.salesName
+    val userEmail = order.userEmail
 
     Column(
         modifier = modifier
@@ -293,7 +294,7 @@ fun FakturEntryContent(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = formatCurrency(faktur.totalAmount),
+                        text = formatCurrency(order.totalAmount),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary

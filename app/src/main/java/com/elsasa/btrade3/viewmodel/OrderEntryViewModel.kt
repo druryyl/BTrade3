@@ -1,11 +1,10 @@
 package com.elsasa.btrade3.viewmodel
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.elsasa.btrade3.model.Faktur
-import com.elsasa.btrade3.repository.FakturRepository
+import com.elsasa.btrade3.model.Order
+import com.elsasa.btrade3.repository.OrderRepository
 import com.elsasa.btrade3.ui.getUserEmail
 import com.elsasa.btrade3.util.FriendlyIdGenerator
 import com.elsasa.btrade3.util.LastSelectionManager
@@ -17,26 +16,26 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-class FakturEntryViewModel(
-    private val repository: FakturRepository,
+class OrderEntryViewModel(
+    private val repository: OrderRepository,
     private val context: Context
 
 ) : ViewModel() {
-    private val _faktur = MutableStateFlow<Faktur?>(null)
-    val faktur: StateFlow<Faktur?> = _faktur.asStateFlow()
+    private val _order = MutableStateFlow<Order?>(null)
+    val order: StateFlow<Order?> = _order.asStateFlow()
 
     private val lastSelectionManager = LastSelectionManager(context)
-    private var hasCreatedNewFaktur = false
+    private var hasCreatedNewOrder = false
 
-    fun loadFaktur(fakturId: String) {
+    fun loadOrder(orderId: String) {
         viewModelScope.launch {
-            _faktur.value = repository.getFakturById(fakturId)
-            hasCreatedNewFaktur = false
+            _order.value = repository.getOrderById(orderId)
+            hasCreatedNewOrder = false
         }
     }
 
-    fun createNewFaktur(context: Context) {
-        if (hasCreatedNewFaktur) return
+    fun createNewOrder(context: Context) {
+        if (hasCreatedNewOrder) return
 
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val userEmail = getUserEmail(context) ?: ""
@@ -45,82 +44,81 @@ class FakturEntryViewModel(
         val lastSalesPersonId = lastSelectionManager.getLastSalesPersonId() ?: ""
         val lastSalesPersonName = lastSelectionManager.getLastSalesPersonName() ?: ""
 
-        val fakturId = UlidHelper.generate()
-        val fakturLocalCode = idGenerator.generateCompactDateSequenceId(context)
+        val orderId = UlidHelper.generate()
+        val orderLocalCode = idGenerator.generateCompactDateSequenceId(context)
 
-        val newFaktur =  Faktur(
-            fakturId = fakturId,
-            fakturLocalCode = fakturLocalCode,
+        val newOrder =  Order(
+            orderId = orderId,
+            orderLocalId = orderLocalCode,
             customerId = "",
             customerCode = "",
             customerName = "",
             customerAddress = "",
-            fakturDate = currentDate,
+            orderDate = currentDate,
             salesId = lastSalesPersonId,
             salesName = lastSalesPersonName,
             totalAmount = 0.0,
             userEmail = userEmail,
-            statusSync = "OPEN"
+            statusSync = "DRAFT",
+            fakturCode = ""
         )
-        _faktur.value = newFaktur
-        hasCreatedNewFaktur = true
+        _order.value = newOrder
+        hasCreatedNewOrder = true
 
         // Save to database immediately
-        saveFaktur(newFaktur)
+        saveOrder(newOrder)
     }
 
     fun updateCustomerInfo(customerId: String, customerCode: String, customerName: String, customerAddress: String) {
-        val current = _faktur.value ?: return
-        val updatedFaktur = current.copy(
+        val current = _order.value ?: return
+        val updatedOrder = current.copy(
             customerId = customerId,
             customerCode = customerCode,
             customerName = customerName,
-            customerAddress = customerAddress)
-        _faktur.value = updatedFaktur
-        saveFakturAndReload(updatedFaktur)
+            customerAddress = customerAddress,
+        )
+        _order.value = updatedOrder
+        saveOrderAndReload(updatedOrder)
 
         lastSelectionManager.saveLastCustomer(customerId,customerCode, customerName, customerAddress)
     }
 
     fun updateSalesInfo(salesId: String, salesName: String) {
-        val current = _faktur.value ?: return
+        val current = _order.value ?: return
         val updatedFaktur = current.copy(
             salesId = salesId,
             salesName = salesName
         )
-        _faktur.value = updatedFaktur
-        saveFakturAndReload(updatedFaktur)
+        _order.value = updatedFaktur
+        saveOrderAndReload(updatedFaktur)
 
         lastSelectionManager.saveLastSalesPerson(salesId,salesName)
     }
 
     fun updateTotalAmount(totalAmount: Double) {
-        val current = _faktur.value ?: return
+        val current = _order.value ?: return
         val updatedFaktur = current.copy(totalAmount = totalAmount)
-        _faktur.value = updatedFaktur
-        saveFakturAndReload(updatedFaktur)
+        _order.value = updatedFaktur
+        saveOrderAndReload(updatedFaktur)
     }
 
     fun updateUserEmail(email: String){
-        Log.d("GoogleSignIn", "Updating user email to: $email")
-        val current = _faktur.value?:return
+        val current = _order.value?:return
         val updatedFaktur = current.copy(userEmail = email)
-        _faktur.value = updatedFaktur
-        Log.d("GoogleSignIn", "Updating user email to: $email")
-        saveFakturAndReload(updatedFaktur)
+        _order.value = updatedFaktur
+        saveOrderAndReload(updatedFaktur)
     }
 
-    private fun saveFaktur(fakturToSave: Faktur) {
+    private fun saveOrder(orderToSave: Order) {
         viewModelScope.launch {
-            repository.insertFaktur(fakturToSave)
+            repository.insertOrder(orderToSave)
         }
     }
-    private fun saveFakturAndReload(fakturToSave: Faktur) {
+    private fun saveOrderAndReload(orderToSave: Order) {
         viewModelScope.launch {
-            // Save to database
-            repository.insertFaktur(fakturToSave)
+            repository.insertOrder(orderToSave)
             // Reload from database to ensure consistency
-            _faktur.value = repository.getFakturById(fakturToSave.fakturId)
+            _order.value = repository.getOrderById(orderToSave.orderId)
         }
     }
 }
