@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.elsasa.btrade3.model.Order
 import java.text.NumberFormat
@@ -291,6 +292,32 @@ fun StatusChip(status: String) {
     }
 }
 
+// create preview composable
+@Preview
+@Composable
+fun OrderCardPreview() {
+    ModernOrderCard(
+        order = Order(
+            salesName = "Danang",
+            customerName = "MIROTA KAMPUS",
+            customerAddress = "123 Main St, Anytown, USA",
+            totalAmount = 100.0,
+            orderDate = "2023-07-01",
+            statusSync = "SENT",
+            fakturCode = "12345",
+            orderId = "01K2FGV5EJ4ACTD048CBYQE0K4",
+            orderLocalId = "258-018",
+            customerId = "AS011",
+            customerCode ="MRT-1",
+            salesId = "SAL01",
+            userEmail = "danang@yahoo.com",
+        ),
+        onEditClick = {  },
+        onDeleteClick = {  },
+        onSyncClick = {  }
+
+    )
+}
 
 private fun formatDate(dateString: String): String {
     return try {
