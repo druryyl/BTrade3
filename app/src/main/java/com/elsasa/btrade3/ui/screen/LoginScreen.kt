@@ -59,20 +59,20 @@ fun LoginScreen(
                         }
                     } ?: run {
                         errorMessage = "Failed to get email from Google account"
-                        Log.e("LoginScreen", "Email is null")
+                        //Log.e("LoginScreen", "Email is null")
                     }
                 } catch (e: ApiException) {
                     errorMessage = "Google Sign-In failed: ${e.statusCode}"
-                    Log.e("LoginScreen", "Sign-in failed with code: ${e.statusCode}", e)
+                    //Log.e("LoginScreen", "Sign-in failed with code: ${e.statusCode}", e)
                 }
             }
-            android.app.Activity.RESULT_CANCELED -> {
-                Log.d("LoginScreen", "Sign-in canceled by user")
-            }
-            else -> {
-                errorMessage = "Unexpected result code: ${result.resultCode}"
-                Log.e("LoginScreen", "Unexpected result code: ${result.resultCode}")
-            }
+            //android.app.Activity.RESULT_CANCELED -> {
+            //    Log.d("LoginScreen", "Sign-in canceled by user")
+            //}
+            //else -> {
+            //    errorMessage = "Unexpected result code: ${result.resultCode}"
+            //    Log.e("LoginScreen", "Unexpected result code: ${result.resultCode}")
+            //}
         }
     }
 
