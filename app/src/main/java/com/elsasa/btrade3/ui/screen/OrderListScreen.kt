@@ -2,6 +2,8 @@ package com.elsasa.btrade3.ui.screen
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -28,8 +32,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,7 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.elsasa.btrade3.model.Order
-import com.elsasa.btrade3.ui.component.ModernOrderCard
+import com.elsasa.btrade3.ui.component.SelectableModernOrderCard
 import com.elsasa.btrade3.ui.logoutUser
 import com.elsasa.btrade3.util.MovableFloatingActionButton
 import com.elsasa.btrade3.viewmodel.OrderListViewModel
@@ -57,6 +63,13 @@ fun OrderListScreen(
     val orders by viewModel.orders.collectAsState()
 
     var orderToDelete by remember { mutableStateOf<Order?>(null) }
+
+
+    // Selection mode state
+    var isSelectionMode by remember { mutableStateOf(false) }
+    val selectedOrders = remember { mutableStateMapOf<String, Order>() }
+    // Bulk delete confirmation dialog
+    var showBulkDeleteDialog by remember { mutableStateOf(false) }
 
     // Delete confirmation dialog
     if (orderToDelete != null) {
@@ -86,54 +99,121 @@ fun OrderListScreen(
             }
         )
     }
+    // Bulk delete confirmation dialog
+    if (showBulkDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showBulkDeleteDialog = false },
+            title = { Text("Delete Selected Orders") },
+            text = {
+                Text(
+                    "Are you sure you want to delete ${selectedOrders.size} selected orders?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        selectedOrders.values.forEach { order ->
+                            viewModel.deleteOrder(order)
+                        }
+                        selectedOrders.clear()
+                        isSelectionMode = false
+                        showBulkDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBulkDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Scaffold(
-        //containerColor = MaterialTheme.colorScheme.surfaceDim,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Sales Orders",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                },
-                actions = {
-                    IconButton(onClick = {
-                        logoutUser(context)
-                        navController.navigate("login") {
-                            popUpTo("faktur_list") { inclusive = true }
+            if (isSelectionMode) {
+                // Selection mode top bar
+                TopAppBar(
+                    title = {
+                        Text(
+                            "${selectedOrders.size} selected",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            isSelectionMode = false
+                            selectedOrders.clear()
+                        }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
                         }
-                    }) {
-                        Icon(
-                            Icons.Outlined.Face,
-                            contentDescription = "Logout",
-                            tint = MaterialTheme.colorScheme.onSurface
+                    },
+                    actions = {
+                        if (selectedOrders.isNotEmpty()) {
+                            IconButton(onClick = {
+                                showBulkDeleteDialog = true
+                            }) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Delete Selected"
+                                )
+                            }
+                        }
+                    }
+                )
+            } else {
+                // Normal mode top bar
+                TopAppBar(
+                    title = {
+                        Text(
+                            "Sales Orders",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
                         )
-                    }
-                    IconButton(onClick = { navController.navigate("sync") }) {
-                        Icon(
-                            Icons.Default.Refresh,
-                            contentDescription = "Sync Data",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    IconButton(onClick = {
-                        navController.navigate("order_sync")
-                    }) {
-                        Icon(Icons.Default.MailOutline, contentDescription = "Sync Orders")
-                    }
-                },
-
-            )
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            logoutUser(context)
+                            navController.navigate("login") {
+                                popUpTo("faktur_list") { inclusive = true }
+                            }
+                        }) {
+                            Icon(
+                                Icons.Outlined.Face,
+                                contentDescription = "Logout",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        IconButton(onClick = { navController.navigate("sync") }) {
+                            Icon(
+                                Icons.Default.Refresh,
+                                contentDescription = "Sync Data",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        IconButton(onClick = {
+                            navController.navigate("order_sync")
+                        }) {
+                            Icon(Icons.Default.MailOutline, contentDescription = "Sync Orders")
+                        }
+                    },
+                )
+            }
         },
         floatingActionButton = {
-            MovableFloatingActionButton(
-                onClick = { navController.navigate("faktur_entry/new/DRAFT") },
-                modifier = Modifier
-                    .padding(end = 16.dp, bottom = 16.dp) // Initial position
-            )
+            if (!isSelectionMode) {
+                MovableFloatingActionButton(
+                    onClick = { navController.navigate("faktur_entry/new/DRAFT") },
+                    modifier = Modifier
+                        .padding(end = 16.dp, bottom = 16.dp)
+                )
+            }
         }
     ) { padding ->
         if (orders.isEmpty()) {
@@ -173,18 +253,53 @@ fun OrderListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(8.dp)
             ) {
-                items(orders) { faktur ->
-                    val itemCount by viewModel.getItemCountAsState(faktur.orderId).collectAsState()
-                    ModernOrderCard(
-                        order = faktur,
+                items(orders) { order ->
+                    val itemCount by viewModel.getItemCountAsState(order.orderId).collectAsState()
+
+                    // Handle long press to enter selection mode
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
+
+                    LaunchedEffect(isPressed) {
+                        if (isPressed && !isSelectionMode) {
+                            isSelectionMode = true
+                            selectedOrders[order.orderId] = order
+                        }
+                    }
+
+                    SelectableModernOrderCard(
+                        order = order,
                         itemCount = itemCount,
+                        isSelected = selectedOrders.containsKey(order.orderId),
+                        isSelectionMode = isSelectionMode,
                         onEditClick = {
-                            navController.navigate("faktur_entry/${faktur.orderId}/${faktur.statusSync}")
+                            if (isSelectionMode) {
+                                // Toggle selection in selection mode
+                                if (selectedOrders.containsKey(order.orderId)) {
+                                    selectedOrders.remove(order.orderId)
+                                } else {
+                                    selectedOrders[order.orderId] = order
+                                }
+                            } else {
+                                // Normal edit click
+                                navController.navigate("faktur_entry/${order.orderId}/${order.statusSync}")
+                            }
                         },
                         onDeleteClick = {
-                            orderToDelete = faktur // Trigger dialog
+                            if (isSelectionMode) {
+                                // Toggle selection in selection mode
+                                if (selectedOrders.containsKey(order.orderId)) {
+                                    selectedOrders.remove(order.orderId)
+                                } else {
+                                    selectedOrders[order.orderId] = order
+                                }
+                            } else {
+                                // Normal delete click
+                                orderToDelete = order
+                            }
                         },
-                        onSyncClick = {}
+                        onSyncClick = {},
+                        interactionSource = interactionSource
                     )
                 }
             }
