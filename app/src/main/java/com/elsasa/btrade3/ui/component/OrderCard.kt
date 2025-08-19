@@ -1,8 +1,12 @@
 package com.elsasa.btrade3.ui.component
 
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +26,11 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.ripple.LocalRippleTheme
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -40,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
@@ -55,13 +63,17 @@ import java.util.Date
 import java.util.Locale
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ModernOrderCard(
+fun SelectableModernOrderCard(
     order: Order,
     itemCount: Int,
+    isSelected: Boolean,
+    isSelectionMode: Boolean,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    onSyncClick: () -> Unit
+    onSyncClick: () -> Unit,
+    interactionSource: MutableInteractionSource
 ) {
     var showMenu by remember { mutableStateOf(false) }
     val clipboardManager = LocalClipboardManager.current
@@ -70,10 +82,32 @@ fun ModernOrderCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onEditClick),
+            .combinedClickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = {
+                    if (isSelectionMode) {
+                        onDeleteClick() // Reuse delete click for selection toggle
+                    } else {
+                        onEditClick()
+                    }
+                },
+                onLongClick = {
+                    // Long press handled in parent, but you can add additional logic here if needed
+                }
+            )
+            .border(
+                width = if (isSelected) 2.dp else 0.dp,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = RoundedCornerShape(12.dp)
+            ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            //containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -81,16 +115,30 @@ fun ModernOrderCard(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            // Row 1: FakturLocalCode (left) and FakturId (right)
+            // Row 1: Checkbox (only in selection mode) + FakturLocalCode (left) and FakturId (right)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                if (isSelectionMode) {
+                    Checkbox(
+                        checked = isSelected,
+                        onCheckedChange = {
+                            if (isSelectionMode) {
+                                onDeleteClick() // Toggle selection
+                            }
+                        },
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
                 Text(
                     text = order.orderLocalId,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.weight(1f)
                 )
 
                 Box(
@@ -106,7 +154,7 @@ fun ModernOrderCard(
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text = order.orderId,
+                        text = order.orderId.take(8) + "...", // Truncate for better UI
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
@@ -211,57 +259,59 @@ fun ModernOrderCard(
                         color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
 
-                    Box {
-                        IconButton(
-                            onClick = { showMenu = true },
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "More options",
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Edit") },
-                                onClick = {
-                                    onEditClick()
-                                    showMenu = false
-                                },
-                                leadingIcon = { Icon(Icons.Default.Edit, "Edit") }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
-                                onClick = {
-                                    onDeleteClick()
-                                    showMenu = false
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        "Delete",
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Sync", color = MaterialTheme.colorScheme.tertiary) },
-                                onClick = {
-                                    onSyncClick()
-                                    showMenu = false
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Refresh,
-                                        "Sync",
-                                        tint = MaterialTheme.colorScheme.tertiary
-                                    )
-                                }
-                            )
+                    if (!isSelectionMode) {
+                        Box {
+                            IconButton(
+                                onClick = { showMenu = true },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "More options",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Edit") },
+                                    onClick = {
+                                        onEditClick()
+                                        showMenu = false
+                                    },
+                                    leadingIcon = { Icon(Icons.Default.Edit, "Edit") }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                                    onClick = {
+                                        onDeleteClick()
+                                        showMenu = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            "Delete",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Sync", color = MaterialTheme.colorScheme.tertiary) },
+                                    onClick = {
+                                        onSyncClick()
+                                        showMenu = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Refresh,
+                                            "Sync",
+                                            tint = MaterialTheme.colorScheme.tertiary
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -269,7 +319,6 @@ fun ModernOrderCard(
         }
     }
 }
-
 
 
 @Composable
@@ -295,32 +344,34 @@ fun StatusChip(status: String) {
 }
 
 // create preview composable
-@Preview
-@Composable
-fun OrderCardPreview() {
-    ModernOrderCard(
-        order = Order(
-            salesName = "Danang",
-            customerName = "MIROTA KAMPUS",
-            customerAddress = "123 Main St, Anytown, USA",
-            totalAmount = 100.0,
-            orderDate = "2023-07-01",
-            statusSync = "SENT",
-            fakturCode = "12345",
-            orderId = "01K2FGV5EJ4ACTD048CBYQE0K4",
-            orderLocalId = "258-018",
-            customerId = "AS011",
-            customerCode ="MRT-1",
-            salesId = "SAL01",
-            userEmail = "danang@yahoo.com",
-        ),
-        8,
-        onEditClick = {  },
-        onDeleteClick = {  },
-        onSyncClick = {  }
-
-    )
-}
+//@Preview
+//@Composable
+//fun OrderCardPreview() {
+//    SelectableModernOrderCard(
+//        order = Order(
+//            salesName = "Danang",
+//            customerName = "MIROTA KAMPUS",
+//            customerAddress = "123 Main St, Anytown, USA",
+//            totalAmount = 100.0,
+//            orderDate = "2023-07-01",
+//            statusSync = "SENT",
+//            fakturCode = "12345",
+//            orderId = "01K2FGV5EJ4ACTD048CBYQE0K4",
+//            orderLocalId = "258-018",
+//            customerId = "AS011",
+//            customerCode = "MRT-1",
+//            salesId = "SAL01",
+//            userEmail = "danang@yahoo.com",
+//        ),
+//        8,
+//        isSelectionMode = false,
+//        onEditClick = { },
+//        onDeleteClick = { },
+//        onSyncClick = { },
+//        isSelected = false,
+//        interactionSource = new MutableInteractionSource(),
+//    )
+//}
 
 private fun formatDate(dateString: String): String {
     return try {
