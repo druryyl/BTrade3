@@ -11,7 +11,7 @@ import androidx.room.ForeignKey
         entity = Order::class,
         parentColumns = ["orderId"],
         childColumns = ["orderId"],
-        onDelete = ForeignKey.CASCADE
+        onDelete = ForeignKey.NO_ACTION
     )]
 )
 data class OrderItem(

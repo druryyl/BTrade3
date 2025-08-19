@@ -19,7 +19,10 @@ class OrderRepository(
 
     suspend fun updateOrder(order: Order) = orderDao.updateOrder(order)
 
-    suspend fun deleteOrder(order: Order) = orderDao.deleteOrder(order)
+    suspend fun deleteOrder(order: Order) {
+        orderItemDao.deleteAllItemsForOrder(order.orderId)
+        orderDao.deleteOrder(order)
+    }
 
     fun getOrderItemsByOrderId(orderId: String): Flow<List<OrderItem>> =
         orderItemDao.getOrderItemsByOrderId(orderId)
