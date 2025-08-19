@@ -45,8 +45,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.elsasa.btrade3.model.Order
+import com.elsasa.btrade3.model.OrderItem
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -56,6 +58,7 @@ import java.util.Locale
 @Composable
 fun ModernOrderCard(
     order: Order,
+    itemCount: Int,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onSyncClick: () -> Unit
@@ -70,7 +73,7 @@ fun ModernOrderCard(
             .clickable(onClick = onEditClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            //containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -87,7 +90,7 @@ fun ModernOrderCard(
                 Text(
                     text = order.orderLocalId,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
 
                 Box(
@@ -105,7 +108,7 @@ fun ModernOrderCard(
                     Text(
                         text = order.orderId,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
             }
@@ -194,9 +197,9 @@ fun ModernOrderCard(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        text = "5 items",
+                        text = "$itemCount items",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 }
 
@@ -205,7 +208,7 @@ fun ModernOrderCard(
                         text = formatCurrency(order.totalAmount),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
 
                     Box {
@@ -291,6 +294,33 @@ fun StatusChip(status: String) {
     }
 }
 
+// create preview composable
+@Preview
+@Composable
+fun OrderCardPreview() {
+    ModernOrderCard(
+        order = Order(
+            salesName = "Danang",
+            customerName = "MIROTA KAMPUS",
+            customerAddress = "123 Main St, Anytown, USA",
+            totalAmount = 100.0,
+            orderDate = "2023-07-01",
+            statusSync = "SENT",
+            fakturCode = "12345",
+            orderId = "01K2FGV5EJ4ACTD048CBYQE0K4",
+            orderLocalId = "258-018",
+            customerId = "AS011",
+            customerCode ="MRT-1",
+            salesId = "SAL01",
+            userEmail = "danang@yahoo.com",
+        ),
+        8,
+        onEditClick = {  },
+        onDeleteClick = {  },
+        onSyncClick = {  }
+
+    )
+}
 
 private fun formatDate(dateString: String): String {
     return try {

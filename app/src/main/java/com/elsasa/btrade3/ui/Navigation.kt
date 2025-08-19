@@ -90,15 +90,16 @@ fun AppNavigation(
         }
 
         composable(
-            "faktur_entry/{orderId}",
+            "faktur_entry/{orderId}/{statusSync}",
             arguments = listOf(navArgument("orderId") { type = NavType.StringType })
         ) { backStackEntry ->
             val fakturId = backStackEntry.arguments?.getString("orderId")
+            val statusSync = backStackEntry.arguments?.getString("statusSync")
             val context = LocalContext.current // Get context here
             val viewModel: OrderEntryViewModel = viewModel(
                 factory = OrderEntryViewModelFactory(orderRepository, context)
             )
-            OrderEntryScreen(navController, viewModel, fakturId)
+            OrderEntryScreen(navController, viewModel, fakturId, statusSync)
         }
 
         composable("customer_selection") {
@@ -116,14 +117,15 @@ fun AppNavigation(
         }
 
         composable(
-            "item_list/{orderId}",
+            "item_list/{orderId}/{statusSync}",
             arguments = listOf(navArgument("orderId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val fakturId = backStackEntry.arguments?.getString("orderId") ?: ""
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            val statusSync = backStackEntry.arguments?.getString("statusSync") ?: ""
             val viewModel: ItemListViewModel = viewModel(
                 factory = ItemListViewModelFactory(orderRepository)
             )
-            ItemListScreen(navController, viewModel, fakturId)
+            ItemListScreen(navController, viewModel, orderId, statusSync)
         }
 
         composable(

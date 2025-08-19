@@ -1,6 +1,7 @@
 package com.elsasa.btrade3.ui.screen
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,6 +47,7 @@ fun OrderEntryScreen(
     navController: NavController,
     viewModel: OrderEntryViewModel,
     orderId: String?,
+    statusSync: String?,
     context: Context = LocalContext.current
 ) {
 
@@ -135,6 +137,16 @@ fun OrderEntryScreen(
             FakturEntryContent(
                 order = orderData,
                 onCustomerSelect = {
+                    if (statusSync != "DRAFT") {
+                        // Show toast message
+                        Toast.makeText(
+                            context,
+                            "Order cannot be edited",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@FakturEntryContent
+                    }
+
                     navController.navigate("customer_selection") {
                         popUpTo("order_entry") { saveState = true }
                         launchSingleTop = true
@@ -142,6 +154,16 @@ fun OrderEntryScreen(
                     }
                 },
                 onSalesSelect = {
+                    if (statusSync != "DRAFT") {
+                        // Show toast message
+                        Toast.makeText(
+                            context,
+                            "Order cannot be edited",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@FakturEntryContent
+                    }
+
                     navController.navigate("sales_selection") {
                         popUpTo("order_entry") { saveState = true }
                         launchSingleTop = true
@@ -149,7 +171,7 @@ fun OrderEntryScreen(
                     }
                 },
                 onViewItems = {
-                    navController.navigate("item_list/${orderData.orderId}")
+                    navController.navigate("item_list/${orderData.orderId}/${orderData.statusSync}")
                 },
                 modifier = Modifier.padding(padding)
             )
