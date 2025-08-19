@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface OrderDao {
-    @Query("SELECT * FROM order_table ORDER BY orderDate DESC")
+    @Query("SELECT * FROM order_table ORDER BY orderLocalId DESC")
     fun getAllOrders(): Flow<List<Order>>
 
     @Query("SELECT * FROM order_table WHERE orderId = :orderId")

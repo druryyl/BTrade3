@@ -1,6 +1,7 @@
 package com.elsasa.btrade3.ui.screen
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,6 +88,7 @@ fun OrderListScreen(
     }
 
     Scaffold(
+        //containerColor = MaterialTheme.colorScheme.surfaceDim,
         topBar = {
             TopAppBar(
                 title = {
@@ -126,17 +128,9 @@ fun OrderListScreen(
 
             )
         },
-//        floatingActionButton = {
-//            FloatingActionButton(
-//                onClick = { navController.navigate("faktur_entry/new") },
-//                containerColor = MaterialTheme.colorScheme.primary
-//            ) {
-//                Icon(Icons.Default.Add, contentDescription = "Add")
-//            }
-//        }
         floatingActionButton = {
             MovableFloatingActionButton(
-                onClick = { navController.navigate("faktur_entry/new") },
+                onClick = { navController.navigate("faktur_entry/new/DRAFT") },
                 modifier = Modifier
                     .padding(end = 16.dp, bottom = 16.dp) // Initial position
             )
@@ -180,10 +174,12 @@ fun OrderListScreen(
                 contentPadding = PaddingValues(8.dp)
             ) {
                 items(orders) { faktur ->
+                    val itemCount by viewModel.getItemCountAsState(faktur.orderId).collectAsState()
                     ModernOrderCard(
                         order = faktur,
+                        itemCount = itemCount,
                         onEditClick = {
-                            navController.navigate("faktur_entry/${faktur.orderId}")
+                            navController.navigate("faktur_entry/${faktur.orderId}/${faktur.statusSync}")
                         },
                         onDeleteClick = {
                             orderToDelete = faktur // Trigger dialog

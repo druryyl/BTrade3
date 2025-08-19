@@ -1,5 +1,6 @@
 package com.elsasa.btrade3.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,11 +57,13 @@ import java.util.Locale
 fun ItemListScreen(
     navController: NavController,
     viewModel: ItemListViewModel,
-    fakturId: String
+    fakturId: String,
+    statusSync: String
 ) {
     val items by viewModel.items.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var itemToDelete by remember { mutableStateOf<OrderItem?>(null) }
+    val context = LocalContext.current // Get context here, outside the lambda
 
     LaunchedEffect(Unit) {
         viewModel.setFakturId(fakturId)
@@ -79,6 +83,16 @@ fun ItemListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
+                    if (statusSync != "DRAFT") {
+                        // Show toast message
+                        Toast.makeText(
+                            context,
+                            "Item cannot be edited",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@FloatingActionButton
+                    }
+
                     navController.navigate("add_barang/$fakturId")
                 }
             ) {
@@ -108,10 +122,28 @@ fun ItemListScreen(
                         ItemCard2(
                             item = item,
                             onEditClick = {
+                                if (statusSync != "DRAFT") {
+                                    // Show toast message
+                                    Toast.makeText(
+                                        context,
+                                        "Item cannot be edited",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@ItemCard2
+                                }
                                 val itemId = "${item.orderId}-${item.noUrut}"
                                 navController.navigate("add_barang/$fakturId?itemId=$itemId")
                             },
                             onDeleteClick = {
+                                if (statusSync != "DRAFT") {
+                                    // Show toast message
+                                    Toast.makeText(
+                                        context,
+                                        "Item cannot be edited",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@ItemCard2
+                                }
                                 itemToDelete = item
                                 showDeleteDialog = true
                             }

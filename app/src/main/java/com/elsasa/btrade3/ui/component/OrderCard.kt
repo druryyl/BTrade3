@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.elsasa.btrade3.model.Order
+import com.elsasa.btrade3.model.OrderItem
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -57,6 +58,7 @@ import java.util.Locale
 @Composable
 fun ModernOrderCard(
     order: Order,
+    itemCount: Int,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onSyncClick: () -> Unit
@@ -71,7 +73,7 @@ fun ModernOrderCard(
             .clickable(onClick = onEditClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            //containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -88,7 +90,7 @@ fun ModernOrderCard(
                 Text(
                     text = order.orderLocalId,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
 
                 Box(
@@ -106,7 +108,7 @@ fun ModernOrderCard(
                     Text(
                         text = order.orderId,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
             }
@@ -195,9 +197,9 @@ fun ModernOrderCard(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        text = "5 items",
+                        text = "$itemCount items",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 }
 
@@ -206,7 +208,7 @@ fun ModernOrderCard(
                         text = formatCurrency(order.totalAmount),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
 
                     Box {
@@ -312,6 +314,7 @@ fun OrderCardPreview() {
             salesId = "SAL01",
             userEmail = "danang@yahoo.com",
         ),
+        8,
         onEditClick = {  },
         onDeleteClick = {  },
         onSyncClick = {  }

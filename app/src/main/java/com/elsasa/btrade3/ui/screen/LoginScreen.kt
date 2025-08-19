@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -45,7 +46,35 @@ fun LoginScreen(
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        // (Keep your existing result handling logic)
+        isLoading = false
+        when (result.resultCode) {
+            android.app.Activity.RESULT_OK -> {
+                try {
+                    val task = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                    val account: GoogleSignInAccount = task.getResult(ApiException::class.java)
+                    account.email?.let { email ->
+                        Log.d("LoginScreen", "User signed in: $email")
+                        onUserSignedIn(email)
+                        navController.navigate("faktur_list") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    } ?: run {
+                        errorMessage = "Failed to get email from Google account"
+                        Log.e("LoginScreen", "Email is null")
+                    }
+                } catch (e: ApiException) {
+                    errorMessage = "Google Sign-In failed: ${e.statusCode}"
+                    Log.e("LoginScreen", "Sign-in failed with code: ${e.statusCode}", e)
+                }
+            }
+            android.app.Activity.RESULT_CANCELED -> {
+                Log.d("LoginScreen", "Sign-in canceled by user")
+            }
+            else -> {
+                errorMessage = "Unexpected result code: ${result.resultCode}"
+                Log.e("LoginScreen", "Unexpected result code: ${result.resultCode}")
+            }
+        }
     }
 
     Scaffold(
@@ -75,7 +104,8 @@ fun LoginScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_launcher2_foreground),
+                    painter = painterResource(R.drawable.sharp_connect_without_contact_24),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
                     contentDescription = "App Logo",
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
