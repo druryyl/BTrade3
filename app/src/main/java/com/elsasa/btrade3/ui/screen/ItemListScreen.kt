@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.elsasa.btrade3.model.OrderItem
+import com.elsasa.btrade3.util.MovableFloatingActionButton
 import com.elsasa.btrade3.viewmodel.ItemListViewModel
 import java.text.NumberFormat
 import java.util.Locale
@@ -81,7 +83,7 @@ fun ItemListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            MovableFloatingActionButton(
                 onClick = {
                     if (statusSync != "DRAFT") {
                         // Show toast message
@@ -90,14 +92,15 @@ fun ItemListScreen(
                             "Item cannot be edited",
                             Toast.LENGTH_SHORT
                         ).show()
-                        return@FloatingActionButton
+                        //return@FloatingActionButton
                     }
 
                     navController.navigate("add_barang/$fakturId")
                 }
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Item")
-            }
+            )
+//            {
+//                Icon(Icons.Default.Add, contentDescription = "Add Item")
+//            }
         }
     ) { padding ->
         if (items.isEmpty()) {
@@ -253,25 +256,33 @@ fun ItemCard2(
 
             // Combined quantity-price row
             if (item.qtyBesar > 0 || item.qtyKecil > 0) {
-                Row(
-                    modifier = Modifier.padding(top = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (item.qtyBesar > 0) {
-                        QuantityChip(
-                            qty = item.qtyBesar,
-                            unit = item.satBesar,
-                            price = item.unitPrice * item.konversi
-                        )
-                    }
+                Column {
+                    // FlowRow makes children wrap automatically
+                    FlowRow(
+                        modifier = Modifier.padding(top = 8.dp),
+                        //verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (item.qtyBesar > 0) {
+                            QuantityChip(
+                                qty = item.qtyBesar,
+                                unit = item.satBesar,
+                                price = item.unitPrice * item.konversi
+                            )
+                        }
 
-                    if (item.qtyKecil > 0) {
-                        QuantityChip(
-                            qty = item.qtyKecil,
-                            unit = item.satKecil,
-                            price = item.unitPrice
-                        )
+                        if (item.qtyKecil > 0) {
+                            QuantityChip(
+                                qty = item.qtyKecil,
+                                unit = item.satKecil,
+                                price = item.unitPrice
+                            )
+                        }
+
+                        val totalDisc = item.disc1 + item.disc2 + item.disc3 + item.disc4
+                        if (totalDisc > 0) {
+                            DiscountChip(item.disc1, item.disc2, item.disc3, item.disc4)
+                        }
                     }
                 }
             }
@@ -325,6 +336,32 @@ private fun QuantityChip(qty: Int, unit: String, price: Double) {
                 text = " × ${formatCurrency(price)}",
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontFamily = FontFamily.Monospace)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DiscountChip(disc1: Double, disc2: Double, disc3: Double, disc4: Double) {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f), // Slightly transparent
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+        ),
+        modifier = Modifier.height(24.dp) // Fixed height for consistency
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${disc1.formatSmart()}% ${disc2.formatSmart()}% ${disc3.formatSmart()}% ${disc4.formatSmart()}%",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = FontFamily.Monospace),
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.error
             )
         }
     }
@@ -383,8 +420,13 @@ fun ItemCardPreview() {
             satBesar = "crt",
             qtyKecil = 2,
             satKecil = "pcs",
+            qtyBonus = 2,
             konversi = 1,
             unitPrice = 100.0,
+            disc1 = 10.0,
+            disc2 = 5.0,
+            disc3 = 0.0,
+            disc4 = 0.0,
             lineTotal = 200.0
         ),
         onEditClick = {  },
@@ -398,4 +440,12 @@ private fun formatCurrency(amount: Double): String {
     format.maximumFractionDigits = 0  // This sets the maximum decimal places to 0
     format.minimumFractionDigits = 0
     return format.format(amount)
+}
+
+fun Double.formatSmart(): String {
+    return if (this % 1 == 0.0) {
+        "%.0f".format(this)
+    } else {
+        this.toString()
+    }
 }
