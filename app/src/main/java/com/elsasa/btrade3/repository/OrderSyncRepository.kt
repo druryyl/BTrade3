@@ -61,8 +61,13 @@ class OrderSyncRepository(
                             satBesar = item.satBesar,
                             qtyKecil = item.qtyKecil,
                             satKecil = item.satKecil,
+                            qtyBonus = item.qtyBonus,
                             konversi = item.konversi,
                             unitPrice = item.unitPrice,
+                            disc1 = item.disc1,
+                            disc2 = item.disc2,
+                            disc3 = item.disc3,
+                            disc4 = item.disc4,
                             lineTotal = item.lineTotal
                         )
                     }
@@ -179,8 +184,13 @@ class OrderSyncRepository(
                     satBesar = item.satBesar,
                     qtyKecil = item.qtyKecil,
                     satKecil = item.satKecil,
+                    qtyBonus = item.qtyBonus,
                     konversi = item.konversi,
                     unitPrice = item.unitPrice,
+                    disc1 = item.disc1,
+                    disc2 = item.disc2,
+                    disc3 = item.disc3,
+                    disc4 = item.disc4,
                     lineTotal = item.lineTotal
                 )
             }
