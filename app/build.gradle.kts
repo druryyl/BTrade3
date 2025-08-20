@@ -51,6 +51,7 @@ dependencies {
     // Compose BOM - manages versions
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.foundation)
     androidTestImplementation(platform(libs.androidx.compose.bom))
 
     // Now add Compose libraries WITHOUT versions

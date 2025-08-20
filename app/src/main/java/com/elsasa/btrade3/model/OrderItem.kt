@@ -25,7 +25,12 @@ data class OrderItem(
     val satBesar: String,
     val qtyKecil: Int,
     val satKecil: String,
+    val qtyBonus: Int,
     val konversi: Int,
     val unitPrice: Double,
+    val disc1: Double,
+    val disc2: Double,
+    val disc3: Double,
+    val disc4: Double,
     val lineTotal: Double
 )

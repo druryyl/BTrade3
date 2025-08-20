@@ -19,7 +19,7 @@ import com.elsasa.btrade3.model.SalesPerson
 
 @Database(
     entities = [Order::class, OrderItem::class, Barang::class, Customer::class, SalesPerson::class],
-    version = 17,
+    version = 18,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -41,13 +41,12 @@ abstract class AppDatabase : RoomDatabase() {
                     "sales_order_database"
                 )
                 .fallbackToDestructiveMigration(false) // Add this for development
-                .addMigrations(MIGRATION_15_16, MIGRATION_16_17)
+                .addMigrations(MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18)
                 .build()
                 INSTANCE = instance
                 instance
             }
         }
-
 
         val MIGRATION_15_16 = object : Migration(15, 16) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -91,5 +90,16 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("DROP TABLE order_item_table_old")
             }
         }
+
+        val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE order_item_table ADD COLUMN qtyBonus INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE order_item_table ADD COLUMN disc1 REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE order_item_table ADD COLUMN disc2 REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE order_item_table ADD COLUMN disc3 REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE order_item_table ADD COLUMN disc4 REAL NOT NULL DEFAULT 0.0")
+            }
+        }
+
     }
 }
