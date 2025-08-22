@@ -239,8 +239,6 @@ fun SyncScreen(
             Button(
                 onClick = {
                     viewModel.syncSalesPersons()
-                    // You'll need to update your SyncViewModel to handle different sync types
-                    // For now, you can add a separate method or parameter
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -263,7 +261,7 @@ fun SyncScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Sync Customer Data")
+                        Text("Sync Sales Person")
                     }
                 }
             }

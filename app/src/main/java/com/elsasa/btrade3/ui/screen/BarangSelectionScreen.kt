@@ -71,13 +71,22 @@ fun BarangSelectionScreen(
     var recentSearches by remember { mutableStateOf(recentSearchManager.getRecentSearches()) }
 
     val filteredBarangs = remember(barangs, searchText) {
-        if (searchText.isEmpty()) {
+        if (searchText.isBlank()) {
             barangs
         } else {
+            val queryWords = searchText.trim()
+                .split("\\s+".toRegex())
+                .filter { it.isNotEmpty() }
+                .map { it.lowercase() }
+
             barangs.filter { barang ->
-                barang.brgCode.lowercase().contains(searchText.lowercase()) ||
-                barang.brgName.lowercase().contains(searchText.lowercase()) ||
-                barang.kategoriName.lowercase().contains(searchText.lowercase())
+                val searchableText = buildString {
+                    append(barang.brgCode).append(" ")
+                    append(barang.brgName).append(" ")
+                    append(barang.kategoriName)
+                }.lowercase()
+
+                queryWords.all { word -> searchableText.contains(word) }
             }
         }
     }

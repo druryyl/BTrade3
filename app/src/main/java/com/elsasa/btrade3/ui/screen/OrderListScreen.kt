@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Refresh
@@ -201,6 +202,11 @@ fun OrderListScreen(
                             navController.navigate("order_sync")
                         }) {
                             Icon(Icons.Default.MailOutline, contentDescription = "Sync Orders")
+                        }
+                        IconButton(onClick = {
+                            navController.navigate("order_summary")
+                        }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Order Summary")
                         }
                     },
                 )

@@ -26,6 +26,7 @@ import com.elsasa.btrade3.ui.screen.OrderEntryScreen
 import com.elsasa.btrade3.ui.screen.OrderListScreen
 import com.elsasa.btrade3.ui.screen.ItemListScreen
 import com.elsasa.btrade3.ui.screen.LoginScreen
+import com.elsasa.btrade3.ui.screen.OrderSummaryScreen
 import com.elsasa.btrade3.ui.screen.OrderSyncScreen
 import com.elsasa.btrade3.ui.screen.SalesSelectionScreen
 import com.elsasa.btrade3.ui.screen.SyncScreen
@@ -41,6 +42,8 @@ import com.elsasa.btrade3.viewmodel.OrderListViewModel
 import com.elsasa.btrade3.viewmodel.OrderListViewModelFactory
 import com.elsasa.btrade3.viewmodel.ItemListViewModel
 import com.elsasa.btrade3.viewmodel.ItemListViewModelFactory
+import com.elsasa.btrade3.viewmodel.OrderSummaryViewModel
+import com.elsasa.btrade3.viewmodel.OrderSummaryViewModelFactory
 import com.elsasa.btrade3.viewmodel.OrderSyncViewModel
 import com.elsasa.btrade3.viewmodel.OrderSyncViewModelFactory
 import com.elsasa.btrade3.viewmodel.SalesSelectionViewModel
@@ -160,6 +163,12 @@ fun AppNavigation(
                 factory = OrderSyncViewModelFactory(orderSyncRepository)
             )
             OrderSyncScreen(navController, viewModel)
+        }
+        composable("order_summary") {
+            val viewModel: OrderSummaryViewModel = viewModel(
+                factory = OrderSummaryViewModelFactory(orderRepository)
+            )
+            OrderSummaryScreen(navController, viewModel)
         }
     }
 }
