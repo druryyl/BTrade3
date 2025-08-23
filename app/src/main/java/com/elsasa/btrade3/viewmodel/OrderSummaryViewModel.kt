@@ -71,4 +71,7 @@ class OrderSummaryViewModel(
     fun getTotalOrders(): Int {
         return _orderSummaries.value.sumOf { it.orderCount }
     }
+    fun getTotalItems(): Int {
+        return _orderSummaries.value.sumOf { it.totalItems }
+    }
 }

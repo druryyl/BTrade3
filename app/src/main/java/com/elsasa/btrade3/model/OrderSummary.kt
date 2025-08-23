@@ -5,5 +5,6 @@ data class OrderSummary(
     val userEmail: String,
     val orderDate: String,
     val orderCount: Int,
-    val grossSales: Double
+    val grossSales: Double,
+    val totalItems: Int
 )

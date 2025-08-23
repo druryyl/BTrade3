@@ -24,22 +24,46 @@ interface OrderDao {
     @Delete
     suspend fun deleteOrder(order: Order)
 
-    // Add this new query for order summary
+    // Updated query to include totalItems using subquery
     @Query("""
-        SELECT userEmail, orderDate, COUNT(orderId) as orderCount, SUM(totalAmount) as grossSales
-        FROM order_table
-        GROUP BY userEmail, orderDate
-        ORDER BY orderDate DESC, userEmail
+        SELECT 
+            o.userEmail,
+            o.orderDate,
+            COUNT(o.orderId) as orderCount,
+            SUM(o.totalAmount) as grossSales,
+            COALESCE(SUM(item_counts.itemCount), 0) as totalItems
+        FROM order_table o
+        LEFT JOIN (
+            SELECT 
+                orderId,
+                COUNT(*) as itemCount
+            FROM order_item_table
+            GROUP BY orderId
+        ) item_counts ON o.orderId = item_counts.orderId
+        GROUP BY o.userEmail, o.orderDate
+        ORDER BY o.orderDate DESC, o.userEmail
     """)
     fun getOrderSummary(): Flow<List<OrderSummary>>
 
-    // Optional: Filter by date range
+    // Updated query with date range filter
     @Query("""
-        SELECT userEmail, orderDate, COUNT(orderId) as orderCount, SUM(totalAmount) as grossSales
-        FROM order_table
-        WHERE orderDate BETWEEN :startDate AND :endDate
-        GROUP BY userEmail, orderDate
-        ORDER BY orderDate DESC, userEmail
+        SELECT 
+            o.userEmail,
+            o.orderDate,
+            COUNT(o.orderId) as orderCount,
+            SUM(o.totalAmount) as grossSales,
+            COALESCE(SUM(item_counts.itemCount), 0) as totalItems
+        FROM order_table o
+        LEFT JOIN (
+            SELECT 
+                orderId,
+                COUNT(*) as itemCount
+            FROM order_item_table
+            GROUP BY orderId
+        ) item_counts ON o.orderId = item_counts.orderId
+        WHERE o.orderDate BETWEEN :startDate AND :endDate
+        GROUP BY o.userEmail, o.orderDate
+        ORDER BY o.orderDate DESC, o.userEmail
     """)
     fun getOrderSummaryByDateRange(startDate: String, endDate: String): Flow<List<OrderSummary>>
 }

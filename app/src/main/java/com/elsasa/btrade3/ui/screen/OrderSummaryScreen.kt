@@ -1,9 +1,12 @@
 package com.elsasa.btrade3.ui.screen
 
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
@@ -12,17 +15,27 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elsasa.btrade3.model.OrderSummary
+import com.elsasa.btrade3.util.getWeekdayFromDateString
 import com.elsasa.btrade3.viewmodel.OrderSummaryViewModel
-import com.elsasa.btrade3.viewmodel.OrderSummaryViewModelFactory
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
+
+
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderSummaryScreen(
@@ -32,6 +45,7 @@ fun OrderSummaryScreen(
     val orderSummaries by viewModel.orderSummaries.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val dateRange by viewModel.dateRange.collectAsState()
+    val maxGrossSales = orderSummaries.maxOfOrNull { it.grossSales }?:0.0
 
     var showDatePicker by remember { mutableStateOf(false) }
     var startDate by remember { mutableStateOf("") }
@@ -116,7 +130,7 @@ fun OrderSummaryScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(orderSummaries) { summary ->
-                            OrderSummaryCard(summary = summary)
+                            OrderSummaryCard(summary = summary, maxGrossSales = maxGrossSales)
                         }
                     }
                 }
@@ -147,141 +161,166 @@ fun SummaryHeaderCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Title
+            Text(
+                text = "Overall Summary",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Stats Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatBlock(label = "Total Orders", value = totalOrders.toString())
+                StatBlock(
+                    label = "Total Sales",
+                    value = formatCurrency(totalSales),
+                    highlight = true
+                )
+            }
+
+            // Optional Date Range
+            dateRange?.let { range ->
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "${formatDate(range.first)}  –  ${formatDate(range.second)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun OrderSummaryCard(summary: OrderSummary, maxGrossSales: Double) {
+    val progress = (summary.grossSales / maxGrossSales)
+        .toFloat()
+        .coerceIn(0f, 1f)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = "Overall Summary",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
+            // Header Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                val dayOfWeek = getWeekdayFromDateString(summary.orderDate)
                 Text(
-                    text = "Total Orders:",
-                    style = MaterialTheme.typography.bodyLarge
+                    text = "${dayOfWeek}, ${formatDate(summary.orderDate)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = totalOrders.toString(),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
+                    text = summary.userEmail,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // Stats Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "Total Sales:",
-                    style = MaterialTheme.typography.bodyLarge
+                StatBlock(label = "Orders", value = summary.orderCount.toString())
+                StatBlock(label = "Items", value = summary.totalItems.toString())
+                StatBlock(
+                    label = "Gross Sales",
+                    value = formatCurrency(summary.grossSales),
+                    highlight = true
                 )
-                Text(
-                    text = formatCurrency(totalSales),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Progress Bar
+            Column {
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(50)),
                     color = MaterialTheme.colorScheme.primary
                 )
-            }
-
-            dateRange?.let { range ->
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Date Range:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${formatDate(range.first)} to ${formatDate(range.second)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Daily Sales Ratio: ${(progress * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
 }
 
 @Composable
-fun OrderSummaryCard(summary: OrderSummary) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = formatDate(summary.orderDate),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = summary.userEmail,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = "Orders",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = summary.orderCount.toString(),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Text(
-                        text = "Sales",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = formatCurrency(summary.grossSales),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
+private fun StatBlock(label: String, value: String, highlight: Boolean = false) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = if (highlight) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+@RequiresApi(Build.VERSION_CODES.O)
+@Preview
+@Composable
+fun OrderSummaryCardPreview() {
+    Column {
+        OrderSummaryCard(summary = OrderSummary("user@example.com", "2025-08-25", 15, 0.0, 5), 75000.0)
+        OrderSummaryCard(summary = OrderSummary("user@example.com", "2025-08-24", 32, 25000.0, 7), 75000.0)
+        OrderSummaryCard(summary = OrderSummary("user@example.com", "2025-08-23", 50, 50000.0,10), 75000.0)
+        OrderSummaryCard(summary = OrderSummary("user@example.com", "2025-08-22", 75, 75000.0,7), 75000.0)
     }
 }
 
@@ -359,3 +398,5 @@ private fun formatDate(dateString: String): String {
         dateString
     }
 }
+
+
