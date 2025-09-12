@@ -60,7 +60,8 @@ class OrderEntryViewModel(
             totalAmount = 0.0,
             userEmail = userEmail,
             statusSync = "DRAFT",
-            fakturCode = ""
+            fakturCode = "",
+            orderNote = ""
         )
         _order.value = newOrder
         hasCreatedNewOrder = true
@@ -93,6 +94,15 @@ class OrderEntryViewModel(
         saveOrderAndReload(updatedFaktur)
 
         lastSelectionManager.saveLastSalesPerson(salesId,salesName)
+    }
+
+    fun updateOrderNote(orderNote: String) {
+        val current = _order.value ?: return
+        val updatedFaktur = current.copy(
+            orderNote = orderNote
+        )
+        _order.value = updatedFaktur
+        saveOrderAndReload(updatedFaktur)
     }
 
     fun updateTotalAmount(totalAmount: Double) {

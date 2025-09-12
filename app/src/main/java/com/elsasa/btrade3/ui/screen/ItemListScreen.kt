@@ -92,15 +92,12 @@ fun ItemListScreen(
                             "Item cannot be edited",
                             Toast.LENGTH_SHORT
                         ).show()
-                        //return@FloatingActionButton
+                        return@MovableFloatingActionButton
                     }
 
                     navController.navigate("add_barang/$fakturId")
                 }
             )
-//            {
-//                Icon(Icons.Default.Add, contentDescription = "Add Item")
-//            }
         }
     ) { padding ->
         if (items.isEmpty()) {

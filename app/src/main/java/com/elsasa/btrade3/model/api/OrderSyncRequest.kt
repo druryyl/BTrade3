@@ -12,6 +12,7 @@ data class OrderSyncRequest(
     val salesName: String,
     val totalAmount: Double,
     val userEmail: String,
+    val orderNote: String,
     val listItem: List<OrderItemSyncDto>
 )
 
@@ -26,7 +27,12 @@ data class OrderItemSyncDto(
     val satBesar: String,
     val qtyKecil: Int,
     val satKecil: String,
+    val qtyBonus: Int,
     val konversi: Int,
     val unitPrice: Double,
+    val disc1: Double,
+    val disc2: Double,
+    val disc3: Double,
+    val disc4: Double,
     val lineTotal: Double
 )

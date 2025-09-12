@@ -139,19 +139,10 @@ fun SearchBar(
                 }
             }
         },
-        //shape = MaterialTheme.shapes.extraLarge,
-//        colors = TextFieldDefaults.colors(
-//            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-//            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-//            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-//            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-//            focusedIndicatorColor = Color.Transparent,
-//            unfocusedIndicatorColor = Color.Transparent,
-//            disabledIndicatorColor = Color.Transparent,
-//            cursorColor = MaterialTheme.colorScheme.primary
-//        ),
+
         textStyle = MaterialTheme.typography.bodyMedium,
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None,
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.None,
             autoCorrectEnabled = false,
             keyboardType = KeyboardType.Unspecified, imeAction = ImeAction.Search
         ),

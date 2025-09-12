@@ -10,16 +10,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material3.AlertDialog
@@ -30,6 +36,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,8 +49,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.elsasa.btrade3.model.Order
@@ -61,15 +71,31 @@ fun OrderListScreen(
     context: Context = LocalContext.current
 ) {
     val orders by viewModel.orders.collectAsState()
-
     var orderToDelete by remember { mutableStateOf<Order?>(null) }
-
 
     // Selection mode state
     var isSelectionMode by remember { mutableStateOf(false) }
     val selectedOrders = remember { mutableStateMapOf<String, Order>() }
+
     // Bulk delete confirmation dialog
     var showBulkDeleteDialog by remember { mutableStateOf(false) }
+
+    // Search state
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearchActive by remember { mutableStateOf(false) }
+
+    // Filtered orders based on search
+    val filteredOrders = remember(orders, searchQuery) {
+        if (searchQuery.isBlank()) {
+            orders
+        } else {
+            orders.filter { order ->
+                order.customerName.contains(searchQuery, ignoreCase = true) ||
+                        order.customerCode.contains(searchQuery, ignoreCase = true) ||
+                        order.orderLocalId.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
 
     // Delete confirmation dialog
     if (orderToDelete != null) {
@@ -99,6 +125,7 @@ fun OrderListScreen(
             }
         )
     }
+
     // Bulk delete confirmation dialog
     if (showBulkDeleteDialog) {
         AlertDialog(
@@ -133,7 +160,21 @@ fun OrderListScreen(
 
     Scaffold(
         topBar = {
-            if (isSelectionMode) {
+            if (isSearchActive) {
+                // Search mode top bar
+                SearchTopAppBar(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    onSearch = { /* Search is live, so no action needed */ },
+                    onClear = {
+                        searchQuery = ""
+                    },
+                    onBack = {
+                        isSearchActive = false
+                        searchQuery = ""
+                    }
+                )
+            } else if (isSelectionMode) {
                 // Selection mode top bar
                 TopAppBar(
                     title = {
@@ -172,12 +213,20 @@ fun OrderListScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            "Sales Orders",
+                            "Orders",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                     },
                     actions = {
+                        IconButton(onClick = {
+                            isSearchActive = true
+                        }) {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = "Search"
+                            )
+                        }
                         IconButton(onClick = {
                             logoutUser(context)
                             navController.navigate("login") {
@@ -202,12 +251,17 @@ fun OrderListScreen(
                         }) {
                             Icon(Icons.Default.MailOutline, contentDescription = "Sync Orders")
                         }
+                        IconButton(onClick = {
+                            navController.navigate("order_summary")
+                        }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Order Summary")
+                        }
                     },
                 )
             }
         },
         floatingActionButton = {
-            if (!isSelectionMode) {
+            if (!isSelectionMode && !isSearchActive) {
                 MovableFloatingActionButton(
                     onClick = { navController.navigate("faktur_entry/new/DRAFT") },
                     modifier = Modifier
@@ -216,7 +270,7 @@ fun OrderListScreen(
             }
         }
     ) { padding ->
-        if (orders.isEmpty()) {
+        if (filteredOrders.isEmpty()) {
             // Empty State
             Box(
                 modifier = Modifier
@@ -226,20 +280,20 @@ fun OrderListScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        imageVector = Icons.Default.ShoppingCart,
+                        imageVector = if (searchQuery.isBlank()) Icons.Default.ShoppingCart else Icons.Default.Search,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "No sales orders found",
+                        if (searchQuery.isBlank()) "No sales orders found" else "No matching orders found",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "Create a new one to get started",
+                        if (searchQuery.isBlank()) "Create a new one to get started" else "Try a different search term",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -253,7 +307,7 @@ fun OrderListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(8.dp)
             ) {
-                items(orders) { order ->
+                items(filteredOrders) { order ->
                     val itemCount by viewModel.getItemCountAsState(order.orderId).collectAsState()
 
                     // Handle long press to enter selection mode
@@ -305,6 +359,60 @@ fun OrderListScreen(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchTopAppBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: (String) -> Unit,
+    onClear: () -> Unit,
+    onBack: () -> Unit
+) {
+    TopAppBar(
+        title = {
+            TextField(
+                value = query,
+                onValueChange = onQueryChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Search by customer, code, or order...") },
+                textStyle = MaterialTheme.typography.bodyLarge,
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                ),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = { onSearch(query) }
+                )
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        },
+        actions = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = onClear) {
+                    Icon(
+                        Icons.Default.Clear,
+                        contentDescription = "Clear"
+                    )
+                }
+            }
+        }
+    )
 }
 
 

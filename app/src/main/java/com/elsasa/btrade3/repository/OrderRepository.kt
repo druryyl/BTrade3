@@ -4,6 +4,7 @@ import com.elsasa.btrade3.dao.OrderDao
 import com.elsasa.btrade3.dao.OrderItemDao
 import com.elsasa.btrade3.model.Order
 import com.elsasa.btrade3.model.OrderItem
+import com.elsasa.btrade3.model.OrderSummary
 import kotlinx.coroutines.flow.Flow
 
 class OrderRepository(
@@ -51,4 +52,11 @@ class OrderRepository(
             updateOrder(updatedOrder)
         }
     }
+
+    // Add this new method
+    fun getOrderSummary(): Flow<List<OrderSummary>> = orderDao.getOrderSummary()
+
+    // Optional: Filter by date range
+    fun getOrderSummaryByDateRange(startDate: String, endDate: String): Flow<List<OrderSummary>> =
+        orderDao.getOrderSummaryByDateRange(startDate, endDate)
 }
