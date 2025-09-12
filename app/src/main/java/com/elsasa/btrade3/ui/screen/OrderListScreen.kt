@@ -20,15 +20,24 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -213,49 +222,19 @@ fun OrderListScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            "Orders",
+                            "Sales Orders",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                     },
                     actions = {
-                        IconButton(onClick = {
-                            isSearchActive = true
-                        }) {
+                        IconButton(onClick = { isSearchActive = true }) {
                             Icon(
                                 Icons.Default.Search,
                                 contentDescription = "Search"
                             )
                         }
-                        IconButton(onClick = {
-                            logoutUser(context)
-                            navController.navigate("login") {
-                                popUpTo("faktur_list") { inclusive = true }
-                            }
-                        }) {
-                            Icon(
-                                Icons.Outlined.Face,
-                                contentDescription = "Logout",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        IconButton(onClick = { navController.navigate("sync") }) {
-                            Icon(
-                                Icons.Default.Refresh,
-                                contentDescription = "Sync Data",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        IconButton(onClick = {
-                            navController.navigate("order_sync")
-                        }) {
-                            Icon(Icons.Default.MailOutline, contentDescription = "Sync Orders")
-                        }
-                        IconButton(onClick = {
-                            navController.navigate("order_summary")
-                        }) {
-                            Icon(Icons.Default.DateRange, contentDescription = "Order Summary")
-                        }
+                        OverflowMenu() // Single menu button instead of multiple icons
                     },
                 )
             }
@@ -357,6 +336,65 @@ fun OrderListScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun OverflowMenu() {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                Icons.Default.MoreVert,
+                contentDescription = "More options"
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Sync Data") },
+                onClick = {
+                    // Handle sync data
+                    expanded = false
+                },
+                leadingIcon = { Icon(Icons.Default.Sync, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Sync Orders") },
+                onClick = {
+                    // Handle sync orders
+                    expanded = false
+                },
+                leadingIcon = { Icon(Icons.Default.CloudUpload, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Order Summary") },
+                onClick = {
+                    // Handle order summary
+                    expanded = false
+                },
+                leadingIcon = { Icon(Icons.Default.Analytics, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Settings") },
+                onClick = {
+                    // Handle settings
+                    expanded = false
+                },
+                leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Logout") },
+                onClick = {
+                    // Handle logout
+                    expanded = false
+                },
+                leadingIcon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) }
+            )
         }
     }
 }
