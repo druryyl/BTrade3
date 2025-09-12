@@ -234,7 +234,7 @@ fun OrderListScreen(
                                 contentDescription = "Search"
                             )
                         }
-                        OverflowMenu() // Single menu button instead of multiple icons
+                        OverflowMenu(navController, context) // Single menu button instead of multiple icons
                     },
                 )
             }
@@ -341,7 +341,10 @@ fun OrderListScreen(
 }
 
 @Composable
-fun OverflowMenu() {
+fun OverflowMenu(
+    navController: NavController,
+    context: Context
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Box {
@@ -358,7 +361,7 @@ fun OverflowMenu() {
             DropdownMenuItem(
                 text = { Text("Sync Data") },
                 onClick = {
-                    // Handle sync data
+                    navController.navigate("sync")
                     expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.Sync, contentDescription = null) }
@@ -366,7 +369,7 @@ fun OverflowMenu() {
             DropdownMenuItem(
                 text = { Text("Sync Orders") },
                 onClick = {
-                    // Handle sync orders
+                    navController.navigate("order_sync")
                     expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.CloudUpload, contentDescription = null) }
@@ -374,22 +377,26 @@ fun OverflowMenu() {
             DropdownMenuItem(
                 text = { Text("Order Summary") },
                 onClick = {
-                    // Handle order summary
+                    navController.navigate("order_summary")
                     expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.Analytics, contentDescription = null) }
             )
-            DropdownMenuItem(
-                text = { Text("Settings") },
-                onClick = {
-                    // Handle settings
-                    expanded = false
-                },
-                leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) }
-            )
+//            DropdownMenuItem(
+//                text = { Text("Settings") },
+//                onClick = {
+//                    // Handle settings
+//                    expanded = false
+//                },
+//                leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) }
+//            )
             DropdownMenuItem(
                 text = { Text("Logout") },
                 onClick = {
+                    logoutUser(context)
+                    navController.navigate("login") {
+                        popUpTo("faktur_list") { inclusive = true }
+                    }
                     // Handle logout
                     expanded = false
                 },
