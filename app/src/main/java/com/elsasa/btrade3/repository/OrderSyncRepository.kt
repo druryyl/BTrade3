@@ -85,7 +85,8 @@ class OrderSyncRepository(
                         salesName = order.salesName,
                         totalAmount = order.totalAmount,
                         userEmail = order.userEmail,
-                        listItem = orderItemDtos
+                        listItem = orderItemDtos,
+                        orderNote = order.orderNote
                     )
 
                     // Send to API
@@ -208,6 +209,7 @@ class OrderSyncRepository(
                 salesName = order.salesName,
                 totalAmount = order.totalAmount,
                 userEmail = order.userEmail,
+                orderNote = order.orderNote,
                 listItem = orderItemDtos
             )
 

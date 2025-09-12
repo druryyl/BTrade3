@@ -19,7 +19,7 @@ import com.elsasa.btrade3.model.SalesPerson
 
 @Database(
     entities = [Order::class, OrderItem::class, Barang::class, Customer::class, SalesPerson::class],
-    version = 18,
+    version = 19,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -41,7 +41,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "sales_order_database"
                 )
                 .fallbackToDestructiveMigration(false) // Add this for development
-                .addMigrations(MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18)
+                .addMigrations(MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19)
                 .build()
                 INSTANCE = instance
                 instance
@@ -100,6 +100,10 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE order_item_table ADD COLUMN disc4 REAL NOT NULL DEFAULT 0.0")
             }
         }
-
+        val MIGRATION_18_19 = object : Migration(18, 19) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE order_table ADD COLUMN orderNote TEXT NOT NULL DEFAULT ''")
+            }
+        }
     }
 }

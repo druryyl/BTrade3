@@ -22,5 +22,6 @@ data class Order(
     val userEmail: String,
     val statusSync: String,
 
-    val fakturCode: String
+    val fakturCode: String,
+    val orderNote: String
 )

@@ -12,6 +12,7 @@ data class OrderSyncRequest(
     val salesName: String,
     val totalAmount: Double,
     val userEmail: String,
+    val orderNote: String,
     val listItem: List<OrderItemSyncDto>
 )
 

@@ -10,22 +10,24 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.RequestQuote
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -43,7 +46,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -185,6 +191,9 @@ fun OrderEntryScreen(
                 onViewItems = {
                     navController.navigate("item_list/${orderData.orderId}/${orderData.statusSync}")
                 },
+                onOrderNoteChange = { note ->
+                    viewModel.updateOrderNote(note)
+                },
                 modifier = Modifier.padding(padding)
             )
         }
@@ -198,6 +207,7 @@ fun FakturEntryContent(
     onCustomerSelect: () -> Unit,
     onSalesSelect: () -> Unit,
     onViewItems: () -> Unit,
+    onOrderNoteChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val customerCode = order.customerCode
@@ -205,6 +215,8 @@ fun FakturEntryContent(
     val customerAddress = order.customerAddress
     val salesName = order.salesName
     val userEmail = order.userEmail
+    val orderNote = order.orderNote
+
 
     Column(
         modifier = modifier
@@ -213,23 +225,11 @@ fun FakturEntryContent(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-
-        // User Info (if logged in)
         if (userEmail.isNotEmpty()) {
             InfoCard(
-                title = "User Information",
+                title = userEmail,
                 icon = Icons.Default.AccountCircle
             ) {
-                Text(
-                    text = "Signed in as:",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = userEmail,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
             }
         }
 
@@ -240,7 +240,11 @@ fun FakturEntryContent(
         ) {
             OutlinedButton(
                 onClick = onCustomerSelect,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Text(
                     text = if (customerName.isNotEmpty()) {
@@ -253,7 +257,7 @@ fun FakturEntryContent(
             }
 
             if (customerAddress.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(6.dp))
+                //Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = customerAddress,
                     style = MaterialTheme.typography.bodySmall,
@@ -271,7 +275,11 @@ fun FakturEntryContent(
         ) {
             OutlinedButton(
                 onClick = onSalesSelect,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Text(
                     text = salesName.ifEmpty { "Select Sales Person" },
@@ -279,6 +287,7 @@ fun FakturEntryContent(
                 )
             }
         }
+
 
         // Order Summary
         InfoCard(
@@ -296,13 +305,12 @@ fun FakturEntryContent(
                 )
                 Text(
                     text = formatCurrency(order.totalAmount),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = FontFamily.Monospace),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = onViewItems,
@@ -318,6 +326,26 @@ fun FakturEntryContent(
                 Text("View / Edit Items")
             }
         }
+        // Order Note
+        InfoCard(
+            title = "Order Note",
+            icon = Icons.Default.RequestQuote
+        ) {
+            OutlinedTextField(
+                value = orderNote,
+                onValueChange = onOrderNoteChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 100.dp),
+                label = { Text("Note For Admin") },
+                textStyle = MaterialTheme.typography.bodyMedium,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Default
+                ),
+                maxLines = 4
+            )
+        }
+
     }
 }
 
@@ -328,7 +356,7 @@ fun InfoCard(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(7.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -337,7 +365,7 @@ fun InfoCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(7.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -350,7 +378,7 @@ fun InfoCard(
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
             }
