@@ -8,18 +8,20 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.elsasa.btrade3.dao.BarangDao
 import com.elsasa.btrade3.dao.CustomerDao
+import com.elsasa.btrade3.dao.CustomerLocationDao
 import com.elsasa.btrade3.dao.OrderDao
 import com.elsasa.btrade3.dao.OrderItemDao
 import com.elsasa.btrade3.dao.SalesPersonDao
 import com.elsasa.btrade3.model.Barang
 import com.elsasa.btrade3.model.Customer
+import com.elsasa.btrade3.model.CustomerLocation
 import com.elsasa.btrade3.model.Order
 import com.elsasa.btrade3.model.OrderItem
 import com.elsasa.btrade3.model.SalesPerson
 
 @Database(
-    entities = [Order::class, OrderItem::class, Barang::class, Customer::class, SalesPerson::class],
-    version = 19,
+    entities = [Order::class, OrderItem::class, Barang::class, Customer::class, SalesPerson::class, CustomerLocation::class],
+    version = 20,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -28,6 +30,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun barangDao(): BarangDao
     abstract fun customerDao(): CustomerDao
     abstract fun salesPersonDao(): SalesPersonDao
+
+    abstract fun customerLocationDao(): CustomerLocationDao
 
     companion object {
         @Volatile

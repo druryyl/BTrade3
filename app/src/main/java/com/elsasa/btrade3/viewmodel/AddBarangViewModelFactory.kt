@@ -6,7 +6,6 @@ import com.elsasa.btrade3.repository.OrderRepository
 
 class AddBarangViewModelFactory(
     private val orderRepository: OrderRepository,
-    //private val barangRepository: BarangRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddBarangViewModel::class.java)) {

@@ -38,17 +38,6 @@ fun CustomerSelectionScreen(
     val recentSearchManager = remember { RecentSearchManager(context, "customer") }
     var recentSearches by remember { mutableStateOf(recentSearchManager.getRecentSearches()) }
 
-//    val filteredCustomers = remember(customers, searchText){
-//        if (searchQuery.isEmpty()) {
-//            customers
-//        } else {
-//            customers.filter { customer ->
-//                customer.customerCode.contains(searchQuery, ignoreCase = true) ||
-//                customer.customerName.contains(searchQuery, ignoreCase = true) ||
-//                customer.alamat.contains(searchQuery, ignoreCase = true)
-//            }
-//        }
-//    }
     val filteredCustomers = remember(customers, searchQuery) {
         if (searchQuery.isBlank()) {
             customers
@@ -198,6 +187,10 @@ fun CustomerSelectionScreen(
                                     "selected_customer_address", customer.alamat
                                 )
                                 navController.popBackStack()
+                            },
+                            onViewLocation = {
+                                navController.navigate("customer_location/${customer.customerId}/${customer.customerName}")
+
                             }
                         )
                     }
@@ -225,6 +218,10 @@ fun CustomerSelectionScreen(
                                     "selected_customer_address", customer.alamat
                                 )
                                 navController.popBackStack()
+                            },
+                            onViewLocation = {
+                                navController.navigate("customer_location/${customer.customerId}/${customer.customerName}")
+
                             }
                         )
                     }
@@ -238,6 +235,7 @@ fun CustomerSelectionScreen(
 fun CustomerItem(
     customer: Customer,
     onClick: () -> Unit,
+    onViewLocation: () -> Unit, // Add this
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -288,6 +286,24 @@ fun CustomerItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = customer.customerName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                // Add location icon button
+                IconButton(onClick = onViewLocation) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "View Location"
+                    )
+                }
             }
         }
     }

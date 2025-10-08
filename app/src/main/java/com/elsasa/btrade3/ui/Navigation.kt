@@ -1,5 +1,8 @@
 package com.elsasa.btrade3.ui
 
+import android.app.Application
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -13,6 +16,7 @@ import androidx.navigation.navArgument
 import com.elsasa.btrade3.database.AppDatabase
 import com.elsasa.btrade3.network.NetworkModule
 import com.elsasa.btrade3.repository.BarangRepository
+import com.elsasa.btrade3.repository.CustomerLocationRepository
 import com.elsasa.btrade3.repository.CustomerRepository
 import com.elsasa.btrade3.repository.OrderRepository
 import com.elsasa.btrade3.repository.NetworkRepository
@@ -21,6 +25,7 @@ import com.elsasa.btrade3.repository.SalesPersonRepository
 import com.elsasa.btrade3.repository.SyncRepository
 import com.elsasa.btrade3.ui.screen.AddBarangScreen
 import com.elsasa.btrade3.ui.screen.BarangSelectionScreen
+import com.elsasa.btrade3.ui.screen.CustomerLocationScreen
 import com.elsasa.btrade3.ui.screen.CustomerSelectionScreen
 import com.elsasa.btrade3.ui.screen.OrderEntryScreen
 import com.elsasa.btrade3.ui.screen.OrderListScreen
@@ -34,6 +39,8 @@ import com.elsasa.btrade3.viewmodel.AddBarangViewModel
 import com.elsasa.btrade3.viewmodel.AddBarangViewModelFactory
 import com.elsasa.btrade3.viewmodel.BarangSelectionViewModel
 import com.elsasa.btrade3.viewmodel.BarangSelectionViewModelFactory
+import com.elsasa.btrade3.viewmodel.CustomerLocationViewModel
+import com.elsasa.btrade3.viewmodel.CustomerLocationViewModelFactory
 import com.elsasa.btrade3.viewmodel.CustomerSelectionViewModel
 import com.elsasa.btrade3.viewmodel.CustomerSelectionViewModelFactory
 import com.elsasa.btrade3.viewmodel.OrderEntryViewModel
@@ -51,6 +58,7 @@ import com.elsasa.btrade3.viewmodel.SalesSelectionViewModelFactory
 import com.elsasa.btrade3.viewmodel.SyncViewModel
 import com.elsasa.btrade3.viewmodel.SyncViewModelFactory
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
     navController: NavHostController,
@@ -69,6 +77,8 @@ fun AppNavigation(
     val networkRepository = NetworkRepository(apiService)
     val syncRepository = SyncRepository(networkRepository, barangRepository, customerRepository, salesPersonRepository)
     val orderSyncRepository = OrderSyncRepository(apiService, orderRepository)
+
+    val customerLocationRepository = CustomerLocationRepository(database.customerLocationDao())
 
     val isLoggedIn = remember { checkIfUserIsLoggedIn(context) }
 
@@ -169,6 +179,24 @@ fun AppNavigation(
                 factory = OrderSummaryViewModelFactory(orderRepository)
             )
             OrderSummaryScreen(navController, viewModel)
+        }
+        composable(
+            "customer_location/{customerId}/{customerName}",
+            arguments = listOf(
+                navArgument("customerId") { type = NavType.StringType },
+                navArgument("customerName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val customerId = backStackEntry.arguments?.getString("customerId") ?: ""
+            val customerName = backStackEntry.arguments?.getString("customerName") ?: ""
+            val context = LocalContext.current
+            val viewModel: CustomerLocationViewModel = viewModel(
+                factory = CustomerLocationViewModelFactory(
+                    customerLocationRepository,
+                    context.applicationContext as Application
+                )
+            )
+            CustomerLocationScreen(navController, viewModel, customerId, customerName)
         }
     }
 }
