@@ -121,46 +121,6 @@ fun LocationCaptureScreen(
                 Text("Capture New Location")
             }
 
-            // Additional action buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (originalLocation != null) {
-                    OutlinedButton(
-                        onClick = { viewModel.resetToOriginalLocation() },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Reset to Saved")
-                    }
-                }
-
-                if (location != null) {
-                    OutlinedButton(
-                        onClick = { viewModel.refreshAddress() },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh",
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Refresh Address")
-                    }
-                }
-            }
-            if (originalLocation != null) {
-                OutlinedButton(
-                    onClick = { viewModel.clearLocation(customerId) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Clear Location")
-                }
-            }
         }
     }
 }
