@@ -1,5 +1,7 @@
 package com.elsasa.btrade3.ui
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -25,6 +27,7 @@ import com.elsasa.btrade3.ui.screen.CustomerSelectionScreen
 import com.elsasa.btrade3.ui.screen.OrderEntryScreen
 import com.elsasa.btrade3.ui.screen.OrderListScreen
 import com.elsasa.btrade3.ui.screen.ItemListScreen
+import com.elsasa.btrade3.ui.screen.LocationCaptureScreen
 import com.elsasa.btrade3.ui.screen.LoginScreen
 import com.elsasa.btrade3.ui.screen.OrderSummaryScreen
 import com.elsasa.btrade3.ui.screen.OrderSyncScreen
@@ -42,6 +45,8 @@ import com.elsasa.btrade3.viewmodel.OrderListViewModel
 import com.elsasa.btrade3.viewmodel.OrderListViewModelFactory
 import com.elsasa.btrade3.viewmodel.ItemListViewModel
 import com.elsasa.btrade3.viewmodel.ItemListViewModelFactory
+import com.elsasa.btrade3.viewmodel.LocationCaptureViewModel
+import com.elsasa.btrade3.viewmodel.LocationCaptureViewModelFactory
 import com.elsasa.btrade3.viewmodel.OrderSummaryViewModel
 import com.elsasa.btrade3.viewmodel.OrderSummaryViewModelFactory
 import com.elsasa.btrade3.viewmodel.OrderSyncViewModel
@@ -51,6 +56,7 @@ import com.elsasa.btrade3.viewmodel.SalesSelectionViewModelFactory
 import com.elsasa.btrade3.viewmodel.SyncViewModel
 import com.elsasa.btrade3.viewmodel.SyncViewModelFactory
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
     navController: NavHostController,
@@ -109,7 +115,11 @@ fun AppNavigation(
             val viewModel: CustomerSelectionViewModel = viewModel(
                 factory = CustomerSelectionViewModelFactory(customerRepository)
             )
-            CustomerSelectionScreen(navController, viewModel)
+            CustomerSelectionScreen(
+                navController = navController,
+                viewModel = viewModel,
+                fromMain = true // Set to true when accessed from main menu
+            )
         }
 
         composable("sales_selection") {
@@ -169,6 +179,21 @@ fun AppNavigation(
                 factory = OrderSummaryViewModelFactory(orderRepository)
             )
             OrderSummaryScreen(navController, viewModel)
+        }
+        composable(
+            "location_capture/{customerId}/{customerName}",
+            arguments = listOf(
+                navArgument("customerId") { type = NavType.StringType },
+                navArgument("customerName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val customerId = backStackEntry.arguments?.getString("customerId") ?: ""
+            val customerName = backStackEntry.arguments?.getString("customerName") ?: ""
+            val context = LocalContext.current
+            val viewModel: LocationCaptureViewModel = viewModel(
+                factory = LocationCaptureViewModelFactory(context, customerRepository)
+            )
+            LocationCaptureScreen(navController, customerId, customerName, viewModel)
         }
     }
 }

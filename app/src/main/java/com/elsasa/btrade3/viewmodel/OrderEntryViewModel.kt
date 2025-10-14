@@ -70,13 +70,16 @@ class OrderEntryViewModel(
         saveOrder(newOrder)
     }
 
-    fun updateCustomerInfo(customerId: String, customerCode: String, customerName: String, customerAddress: String) {
+    fun updateCustomerInfo(customerId: String, customerCode: String, customerName: String, customerAddress: String,
+                           customerLatitude: Double, customerLongitude: Double) {
         val current = _order.value ?: return
         val updatedOrder = current.copy(
             customerId = customerId,
             customerCode = customerCode,
             customerName = customerName,
             customerAddress = customerAddress,
+            customerLatitude = customerLatitude,
+            customerLongitude = customerLongitude,
         )
         _order.value = updatedOrder
         saveOrderAndReload(updatedOrder)

@@ -52,6 +52,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.foundation)
+    implementation(libs.play.services.location)
     androidTestImplementation(platform(libs.androidx.compose.bom))
 
     // Now add Compose libraries WITHOUT versions

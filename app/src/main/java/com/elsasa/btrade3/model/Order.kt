@@ -13,6 +13,8 @@ data class Order(
     val customerCode: String,
     val customerName: String,
     val customerAddress: String,
+    val customerLatitude: Double = 0.0,  // Add if not present
+    val customerLongitude: Double = 0.0, // Add if not present
 
     val orderDate: String,
     val salesId: String,

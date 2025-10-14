@@ -86,7 +86,14 @@ fun OrderEntryScreen(
     val selectedCustomerAddress = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.get<String>("selected_customer_address")
+    // New location fields
+    val selectedCustomerLatitude = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<String>("selected_customer_latitude")
 
+    val selectedCustomerLongitude = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<String>("selected_customer_longitude")
     val selectedSalesId = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.get<String>("selected_sales_id")
@@ -110,17 +117,38 @@ fun OrderEntryScreen(
     }
 
     // Handle customer selection result
-    LaunchedEffect(selectedCustomerId, selectedCustomerCode, selectedCustomerName, selectedCustomerAddress) {
+    LaunchedEffect(selectedCustomerId, selectedCustomerCode, selectedCustomerName, selectedCustomerAddress, selectedCustomerLatitude, selectedCustomerLongitude) {
         selectedCustomerId?.let { id ->
             selectedCustomerCode?.let { code ->
                 selectedCustomerName?.let { name ->
                     selectedCustomerAddress?.let { address ->
-                        viewModel.updateCustomerInfo(id, code, name, address)
-                        // Clear the saved state to avoid reprocessing
-                        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_customer_id")
-                        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_customer_code")
-                        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_customer_name")
-                        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("selected_customer_address")
+                        selectedCustomerLatitude?.let { lat ->
+                            selectedCustomerLongitude?.let { lng ->
+                                viewModel.updateCustomerInfo(
+                                    id, code, name,
+                                    address, lat.toDouble(), lng.toDouble()
+                                )
+                                // Clear the saved state to avoid reprocessing
+                                navController.currentBackStackEntry?.savedStateHandle?.remove<String>(
+                                    "selected_customer_id"
+                                )
+                                navController.currentBackStackEntry?.savedStateHandle?.remove<String>(
+                                    "selected_customer_code"
+                                )
+                                navController.currentBackStackEntry?.savedStateHandle?.remove<String>(
+                                    "selected_customer_name"
+                                )
+                                navController.currentBackStackEntry?.savedStateHandle?.remove<String>(
+                                    "selected_customer_address"
+                                )
+                                navController.currentBackStackEntry?.savedStateHandle?.remove<String>(
+                                    "selected_customer_latitude"
+                                )
+                                navController.currentBackStackEntry?.savedStateHandle?.remove<String>(
+                                    "selected_customer_longitude"
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -216,7 +244,6 @@ fun FakturEntryContent(
     val salesName = order.salesName
     val userEmail = order.userEmail
     val orderNote = order.orderNote
-
 
     Column(
         modifier = modifier

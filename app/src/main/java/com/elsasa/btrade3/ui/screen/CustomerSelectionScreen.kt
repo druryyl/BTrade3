@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -20,15 +21,19 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.elsasa.btrade3.model.Customer
 import com.elsasa.btrade3.ui.component.SearchBar
+import com.elsasa.btrade3.util.MapUtils
 import com.elsasa.btrade3.util.RecentSearchManager
 import com.elsasa.btrade3.viewmodel.CustomerSelectionViewModel
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerSelectionScreen(
     navController: NavController,
     viewModel: CustomerSelectionViewModel,
-    context: Context = LocalContext.current
+    context: Context = LocalContext.current,
+    fromMain: Boolean = false // New parameter to indicate if called from main menu
+
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val customers by viewModel.customers.collectAsState()
@@ -38,17 +43,6 @@ fun CustomerSelectionScreen(
     val recentSearchManager = remember { RecentSearchManager(context, "customer") }
     var recentSearches by remember { mutableStateOf(recentSearchManager.getRecentSearches()) }
 
-//    val filteredCustomers = remember(customers, searchText){
-//        if (searchQuery.isEmpty()) {
-//            customers
-//        } else {
-//            customers.filter { customer ->
-//                customer.customerCode.contains(searchQuery, ignoreCase = true) ||
-//                customer.customerName.contains(searchQuery, ignoreCase = true) ||
-//                customer.alamat.contains(searchQuery, ignoreCase = true)
-//            }
-//        }
-//    }
     val filteredCustomers = remember(customers, searchQuery) {
         if (searchQuery.isBlank()) {
             customers
@@ -74,7 +68,7 @@ fun CustomerSelectionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Select Customer") },
+                title = { Text("Manage Customers") }, // Changed title for main menu context
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -102,7 +96,7 @@ fun CustomerSelectionScreen(
                             recentSearches = recentSearchManager.getRecentSearches()
                         }
                     },
-                    placeholder = "Search by code, name, or category",
+                    placeholder = "Search by code, name, address, or region",
                     onFocusChange = { focused ->
                         isSearchFocused.value = focused
                     }
@@ -185,19 +179,48 @@ fun CustomerSelectionScreen(
                         CustomerItem(
                             customer = customer,
                             onClick = {
-                                navController.previousBackStackEntry?.savedStateHandle?.set(
-                                    "selected_customer_id", customer.customerId
-                                )
-                                navController.previousBackStackEntry?.savedStateHandle?.set(
-                                    "selected_customer_code", customer.customerCode
-                                )
-                                navController.previousBackStackEntry?.savedStateHandle?.set(
-                                    "selected_customer_name", customer.customerName
-                                )
-                                navController.previousBackStackEntry?.savedStateHandle?.set(
-                                    "selected_customer_address", customer.alamat
-                                )
-                                navController.popBackStack()
+                                if (fromMain) {
+                                    // If called from main menu, just stay on the customer list
+                                    // or navigate to a customer detail screen
+                                    // For now, we'll just keep them on the customer list
+                                } else {
+                                    // If called from order creation, return to order screen
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_id", customer.customerId
+                                    )
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_code", customer.customerCode
+                                    )
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_name", customer.customerName
+                                    )
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_address", customer.alamat
+                                    )
+                                    // Pass location data as well
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_latitude", customer.latitude.toString()
+                                    )
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_longitude", customer.longitude.toString()
+                                    )
+                                    navController.popBackStack()
+                                }
+                            },
+                            onLocationClick = { customer ->
+                                // Navigate to location capture screen
+                                navController.navigate("location_capture/${customer.customerId}/${customer.customerName}")
+                            },
+                            onOpenInMaps = { customer ->
+                                // Open customer location in Google Maps
+                                if (customer.latitude != 0.0 && customer.longitude != 0.0) {
+                                    MapUtils.openInGoogleMaps(
+                                        context = context,
+                                        latitude = customer.latitude,
+                                        longitude = customer.longitude,
+                                        label = customer.customerName
+                                    )
+                                }
                             }
                         )
                     }
@@ -212,19 +235,48 @@ fun CustomerSelectionScreen(
                                     recentSearchManager.addRecentSearch(searchText)
                                     recentSearches = recentSearchManager.getRecentSearches()
                                 }
-                                navController.previousBackStackEntry?.savedStateHandle?.set(
-                                    "selected_customer_id", customer.customerId
-                                )
-                                navController.previousBackStackEntry?.savedStateHandle?.set(
-                                    "selected_customer_code", customer.customerCode
-                                )
-                                navController.previousBackStackEntry?.savedStateHandle?.set(
-                                    "selected_customer_name", customer.customerName
-                                )
-                                navController.previousBackStackEntry?.savedStateHandle?.set(
-                                    "selected_customer_address", customer.alamat
-                                )
-                                navController.popBackStack()
+                                if (fromMain) {
+                                    // If called from main menu, just stay on the customer list
+                                    // or navigate to a customer detail screen
+                                    // For now, we'll just keep them on the customer list
+                                } else {
+                                    // If called from order creation, return to order screen
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_id", customer.customerId
+                                    )
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_code", customer.customerCode
+                                    )
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_name", customer.customerName
+                                    )
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_address", customer.alamat
+                                    )
+                                    // Pass location data as well
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_latitude", customer.latitude.toString()
+                                    )
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selected_customer_longitude", customer.longitude.toString()
+                                    )
+                                    navController.popBackStack()
+                                }
+                            },
+                            onLocationClick = { customer ->
+                                // Navigate to location capture screen
+                                navController.navigate("location_capture/${customer.customerId}/${customer.customerName}")
+                            },
+                            onOpenInMaps = { customer ->
+                                // Open customer location in Google Maps
+                                if (customer.latitude != 0.0 && customer.longitude != 0.0) {
+                                    MapUtils.openInGoogleMaps(
+                                        context = context,
+                                        latitude = customer.latitude,
+                                        longitude = customer.longitude,
+                                        label = customer.customerName
+                                    )
+                                }
                             }
                         )
                     }
@@ -238,7 +290,9 @@ fun CustomerSelectionScreen(
 fun CustomerItem(
     customer: Customer,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onLocationClick: (Customer) -> Unit,
+    modifier: Modifier = Modifier,
+    onOpenInMaps: (Customer) -> Unit
 ) {
     Card(
         modifier = modifier
@@ -289,6 +343,55 @@ fun CustomerItem(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            Spacer(modifier = Modifier.height(4.dp))
+            if (customer.latitude != 0.0 && customer.longitude != 0.0) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Location set",
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "±${customer.accuracy.roundToInt()}m accuracy",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Row { // Changed from single IconButton to Row of buttons
+                IconButton(
+                    onClick = { onLocationClick(customer) },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Set location",
+                        tint = if (customer.latitude != 0.0 && customer.longitude != 0.0) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
+
+                // New "Open in Maps" button - only show if location is set
+                if (customer.latitude != 0.0 && customer.longitude != 0.0) {
+                    IconButton(
+                        onClick = { onOpenInMaps(customer) },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Map,
+                            contentDescription = "Open in Maps",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+
         }
     }
 }

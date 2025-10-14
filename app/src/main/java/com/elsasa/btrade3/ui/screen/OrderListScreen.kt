@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -67,6 +68,7 @@ import androidx.navigation.NavController
 import com.elsasa.btrade3.model.Order
 import com.elsasa.btrade3.ui.component.SelectableModernOrderCard
 import com.elsasa.btrade3.ui.logoutUser
+import com.elsasa.btrade3.util.MapUtils
 import com.elsasa.btrade3.util.MovableFloatingActionButton
 import com.elsasa.btrade3.viewmodel.OrderListViewModel
 import java.text.NumberFormat
@@ -332,6 +334,17 @@ fun OrderListScreen(
                             }
                         },
                         onSyncClick = {},
+                        onOpenCustomerInMaps = { order ->
+                            // Open customer location in Google Maps
+                            if (order.customerLatitude != 0.0 && order.customerLongitude != 0.0) {
+                                MapUtils.openInGoogleMaps(
+                                    context = context,
+                                    latitude = order.customerLatitude,
+                                    longitude = order.customerLongitude,
+                                    label = order.customerName
+                                )
+                            }
+                        },
                         interactionSource = interactionSource
                     )
                 }
@@ -359,6 +372,14 @@ fun OverflowMenu(
             onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
+                text = { Text("Manage Customers") },
+                onClick = {
+                    navController.navigate("customer_selection")
+                    expanded = false
+                },
+                leadingIcon = { Icon(Icons.Default.People, contentDescription = null) }
+            )
+            DropdownMenuItem(
                 text = { Text("Sync Data") },
                 onClick = {
                     navController.navigate("sync")
@@ -382,14 +403,6 @@ fun OverflowMenu(
                 },
                 leadingIcon = { Icon(Icons.Default.Analytics, contentDescription = null) }
             )
-//            DropdownMenuItem(
-//                text = { Text("Settings") },
-//                onClick = {
-//                    // Handle settings
-//                    expanded = false
-//                },
-//                leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) }
-//            )
             DropdownMenuItem(
                 text = { Text("Logout") },
                 onClick = {
@@ -459,8 +472,6 @@ fun SearchTopAppBar(
         }
     )
 }
-
-
 
 private fun formatCurrency(amount: Double): String {
     val locale = Locale.Builder().setLanguage("id").setRegion("ID").build()

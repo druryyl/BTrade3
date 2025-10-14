@@ -28,6 +28,7 @@ interface CustomerDao {
 
     @Delete
     suspend fun deleteCustomer(customer: Customer)
+
     @Query("DELETE FROM customer_table")
     suspend fun deleteAllCustomer()
 }

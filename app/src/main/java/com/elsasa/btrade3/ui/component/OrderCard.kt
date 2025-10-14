@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.DateRange
@@ -73,6 +74,7 @@ fun SelectableModernOrderCard(
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onSyncClick: () -> Unit,
+    onOpenCustomerInMaps: (Order) -> Unit,
     interactionSource: MutableInteractionSource
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -175,12 +177,9 @@ fun SelectableModernOrderCard(
                     maxLines = 1,
                     modifier = Modifier.weight(1f)
                 )
-
                 Spacer(modifier = Modifier.width(8.dp))
-
                 StatusChip(status = order.statusSync)
             }
-
             // Row 3: Address
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
@@ -197,6 +196,21 @@ fun SelectableModernOrderCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                // Add small map icon if location is available
+                if (order.customerLatitude != 0.0 && order.customerLongitude != 0.0) {
+                    Spacer(Modifier.width(4.dp))
+                    IconButton(
+                        onClick = {onOpenCustomerInMaps(order)},
+                        modifier = Modifier.size(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Map,
+                            contentDescription = "Open in Maps",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                }
             }
 
             // Row 4: Sales Name + Date

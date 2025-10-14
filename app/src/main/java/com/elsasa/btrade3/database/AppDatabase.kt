@@ -19,7 +19,7 @@ import com.elsasa.btrade3.model.SalesPerson
 
 @Database(
     entities = [Order::class, OrderItem::class, Barang::class, Customer::class, SalesPerson::class],
-    version = 19,
+    version = 21,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -41,7 +41,8 @@ abstract class AppDatabase : RoomDatabase() {
                     "sales_order_database"
                 )
                 .fallbackToDestructiveMigration(false) // Add this for development
-                .addMigrations(MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19)
+                .addMigrations(MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18,
+                    MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21)
                 .build()
                 INSTANCE = instance
                 instance
@@ -103,6 +104,22 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_18_19 = object : Migration(18, 19) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE order_table ADD COLUMN orderNote TEXT NOT NULL DEFAULT ''")
+            }
+        }
+        val MIGRATION_19_20 = object : Migration(19, 20) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add location-related columns to customer_table
+                db.execSQL("ALTER TABLE customer_table ADD COLUMN latitude REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE customer_table ADD COLUMN longitude REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE customer_table ADD COLUMN accuracy REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE customer_table ADD COLUMN locationTimestamp INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        val MIGRATION_20_21 = object : Migration(19, 20) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add location-related columns to customer_table
+                db.execSQL("ALTER TABLE order_table ADD COLUMN customerLatitude REAL NOT NULL DEFAULT 0.0")
+                db.execSQL("ALTER TABLE order_table ADD COLUMN customerLongitude REAL NOT NULL DEFAULT 0.0")
             }
         }
     }
