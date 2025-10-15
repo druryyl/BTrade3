@@ -152,13 +152,11 @@ class LocationCaptureViewModel(
                     // Update nearby customers based on new location
                     updateNearbyCustomers()
                 } ?: run {
-                    Log.d("LocationCaptureViewModel", "No location found")
                     _locationStatus.value = LocationStatus.NO_SIGNAL
                 }
                 _isLoading.value = false
             },
             onError = { exception ->
-                Log.e("LocationCaptureViewModel", "Location error", exception)
                 _locationStatus.value = LocationStatus.NO_SIGNAL
                 _isLoading.value = false
             }

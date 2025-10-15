@@ -30,7 +30,6 @@ class GoogleSignInHelper(context: Context) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             task.getResult(ApiException::class.java)
         } catch (e: ApiException) {
-            Log.e("GoogleSignIn", "Sign-in failed with code: ${e.statusCode}", e)
             null
         }
     }

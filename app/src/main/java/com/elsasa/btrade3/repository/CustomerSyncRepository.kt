@@ -25,8 +25,6 @@ class CustomerSyncRepository(
 
     suspend fun syncUpdatedCustomers(userEmail: String): SyncResult = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "Starting customer location sync...")
-
             // Get all customers with isUpdated = true
             val updatedCustomers = customerRepository.getAllCustomer().first()
                 .filter { it.isUpdated }
@@ -40,11 +38,8 @@ class CustomerSyncRepository(
 
             // Sync each customer location
             updatedCustomers.forEachIndexed { index, customer ->
-                Log.d(TAG, "Syncing customer ${index + 1}/$totalCustomers: ${customer.customerName}")
-
                 // Update progress (if you want to show progress)
                 // This would need to be handled differently in practice
-
                 try {
                     val syncRequest = CustomerSyncRequest(
                         customerId = customer.customerId,
@@ -64,16 +59,12 @@ class CustomerSyncRepository(
                             val updatedCustomer = customer.copy(isUpdated = false)
                             customerRepository.updateCustomer(updatedCustomer)
                             syncedCount++
-                            Log.d(TAG, "Successfully synced customer: ${customer.customerName}")
                         } else {
                             val errorMessage = apiResponse?.message ?: "Unknown error"
-                            Log.e(TAG, "API error for customer ${customer.customerName}: $errorMessage")
                         }
                     } else {
-                        Log.e(TAG, "HTTP error for customer ${customer.customerName}: ${response.code()} ${response.message()}")
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error syncing customer ${customer.customerName}", e)
                 }
             }
 
@@ -82,7 +73,6 @@ class CustomerSyncRepository(
                 count = syncedCount
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Customer sync error", e)
             SyncResult.Error("Customer sync failed: ${e.message}")
         }
     }
@@ -93,8 +83,6 @@ class CustomerSyncRepository(
         onProgress: (SyncResult.Progress) -> Unit
     ): SyncResult = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "Starting customer location sync with progress...")
-
             // Get all customers with isUpdated = true
             val updatedCustomers = customerRepository.getAllCustomer().first()
                 .filter { it.isUpdated }
@@ -133,16 +121,12 @@ class CustomerSyncRepository(
                             val updatedCustomer = customer.copy(isUpdated = false)
                             customerRepository.updateCustomer(updatedCustomer)
                             syncedCount++
-                            Log.d(TAG, "Successfully synced customer: ${customer.customerName}")
                         } else {
                             val errorMessage = apiResponse?.message ?: "Unknown error"
-                            Log.e(TAG, "API error for customer ${customer.customerName}: $errorMessage")
                         }
                     } else {
-                        Log.e(TAG, "HTTP error for customer ${customer.customerName}: ${response.code()} ${response.message()}")
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error syncing customer ${customer.customerName}", e)
                 }
             }
 
@@ -151,7 +135,6 @@ class CustomerSyncRepository(
                 count = syncedCount
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Customer sync error", e)
             SyncResult.Error("Customer sync failed: ${e.message}")
         }
     }

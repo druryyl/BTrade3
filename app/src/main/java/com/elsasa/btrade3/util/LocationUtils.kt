@@ -11,14 +11,12 @@ object LocationUtils {
         try {
             // Validate coordinates
             if (lat1.isNaN() || lng1.isNaN() || lat2.isNaN() || lng2.isNaN()) {
-                Log.e("LocationUtils", "Invalid coordinates for distance calculation: $lat1, $lng1, $lat2, $lng2")
                 return Float.MAX_VALUE // Return a large value to indicate invalid coordinates
             }
 
             // Validate coordinate ranges
             if (lat1 < -90 || lat1 > 90 || lat2 < -90 || lat2 > 90 ||
                 lng1 < -180 || lng1 > 180 || lng2 < -180 || lng2 > 180) {
-                Log.e("LocationUtils", "Coordinates out of range: $lat1, $lng1, $lat2, $lng2")
                 return Float.MAX_VALUE
             }
 
@@ -34,7 +32,6 @@ object LocationUtils {
 
             return location1.distanceTo(location2)
         } catch (e: Exception) {
-            Log.e("LocationUtils", "Error calculating distance", e)
             return Float.MAX_VALUE
         }
     }
@@ -51,7 +48,6 @@ object LocationUtils {
         return try {
             // Validate target coordinates
             if (targetLat.isNaN() || targetLng.isNaN()) {
-                Log.e("LocationUtils", "Invalid target coordinates: $targetLat, $targetLng")
                 return emptyList()
             }
 
@@ -63,7 +59,6 @@ object LocationUtils {
                         !customer.longitude.isNaN()
 
                 if (!hasValidLocation) {
-                    Log.w("LocationUtils", "Skipping customer ${customer.customerName} - invalid location data: ${customer.latitude}, ${customer.longitude}")
                 }
                 hasValidLocation
             }
@@ -77,7 +72,6 @@ object LocationUtils {
                     )
                     distance <= radiusMeters && distance != Float.MAX_VALUE
                 } catch (e: Exception) {
-                    Log.e("LocationUtils", "Error calculating distance for customer ${customer.customerName}", e)
                     false
                 }
             }
@@ -90,12 +84,10 @@ object LocationUtils {
                         customer.latitude, customer.longitude
                     )
                 } catch (e: Exception) {
-                    Log.e("LocationUtils", "Error sorting customer ${customer.customerName}", e)
                     Float.MAX_VALUE
                 }
             }
         } catch (e: Exception) {
-            Log.e("LocationUtils", "Error getting customers within radius", e)
             emptyList()
         }
     }

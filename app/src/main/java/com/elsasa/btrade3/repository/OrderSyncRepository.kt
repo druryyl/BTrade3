@@ -28,7 +28,6 @@ class OrderSyncRepository(
 
     suspend fun syncDraftOrders(): SyncResult = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "Starting draft orders sync...")
 
             // Get all draft orders
             val draftOrders = orderRepository.getDraftOrders().firstOrNull() ?: emptyList()
@@ -42,8 +41,6 @@ class OrderSyncRepository(
 
             // Sync orders one by one
             draftOrders.forEachIndexed { index, order ->
-                Log.d(TAG, "Syncing order ${index + 1}/$totalOrders: ${order.orderLocalId}")
-
                 try {
                     // Get order items
                     val orderItems = orderRepository.getOrderItemsByOrderId(order.orderId).firstOrNull() ?: emptyList()
@@ -103,16 +100,12 @@ class OrderSyncRepository(
                                 // No fakturCode since it's not in the response
                             )
                             syncedCount++
-                            Log.d(TAG, "Successfully synced order: ${order.orderLocalId}")
                         } else {
                             val errorMessage = apiResponse?.message ?: "API returned error status"
-                            Log.e(TAG, "API error for order ${order.orderLocalId}: $errorMessage")
                         }
                     } else {
-                        Log.e(TAG, "HTTP error for order ${order.orderLocalId}: ${response.code()} ${response.message()}")
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error syncing order ${order.orderLocalId}", e)
                 }
             }
 
@@ -121,7 +114,6 @@ class OrderSyncRepository(
                 count = syncedCount
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Sync error", e)
             SyncResult.Error("Sync failed: ${e.message}")
         }
     }
@@ -131,8 +123,6 @@ class OrderSyncRepository(
         onProgress: (SyncResult.Progress) -> Unit
     ): SyncResult = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "Starting draft orders sync with progress...")
-
             // Get all draft orders
             val draftOrders = orderRepository.getDraftOrders().firstOrNull() ?: emptyList()
 
@@ -163,7 +153,6 @@ class OrderSyncRepository(
                 count = syncedCount
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Sync error", e)
             SyncResult.Error("Sync failed: ${e.message}")
         }
     }
@@ -224,19 +213,15 @@ class OrderSyncRepository(
                         orderId = order.orderId,
                         status = "SENT"
                     )
-                    Log.d(TAG, "Successfully synced order: ${order.orderLocalId}")
                     true
                 } else {
                     val errorMessage = apiResponse?.message ?: "API returned error status"
-                    Log.e(TAG, "API error for order ${order.orderLocalId}: $errorMessage")
                     false
                 }
             } else {
-                Log.e(TAG, "HTTP error for order ${order.orderLocalId}: ${response.code()} ${response.message()}")
                 false
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error syncing order ${order.orderLocalId}", e)
             false
         }
     }
