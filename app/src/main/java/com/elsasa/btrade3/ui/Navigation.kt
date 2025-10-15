@@ -181,19 +181,23 @@ fun AppNavigation(
             OrderSummaryScreen(navController, viewModel)
         }
         composable(
-            "location_capture/{customerId}/{customerName}",
+            "location_capture/{customerId}/{customerName}/{customerAddress}/{customerCity}",
             arguments = listOf(
                 navArgument("customerId") { type = NavType.StringType },
-                navArgument("customerName") { type = NavType.StringType }
+                navArgument("customerName") { type = NavType.StringType },
+                navArgument("customerAddress") { type = NavType.StringType },
+                navArgument("customerCity") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val customerId = backStackEntry.arguments?.getString("customerId") ?: ""
             val customerName = backStackEntry.arguments?.getString("customerName") ?: ""
+            val customerAddress = backStackEntry.arguments?.getString("customerAddress") ?: ""
+            val customerCity = backStackEntry.arguments?.getString("customerCity") ?: ""
             val context = LocalContext.current
             val viewModel: LocationCaptureViewModel = viewModel(
                 factory = LocationCaptureViewModelFactory(context, customerRepository)
             )
-            LocationCaptureScreen(navController, customerId, customerName, viewModel)
+            LocationCaptureScreen(navController, customerId, customerName, customerAddress, customerCity,viewModel)
         }
     }
 }

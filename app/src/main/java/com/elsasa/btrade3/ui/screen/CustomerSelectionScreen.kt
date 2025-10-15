@@ -219,7 +219,7 @@ fun CustomerSelectionScreen(
                             },
                             onManageLocationClick = { customer ->
                                 // Navigate to location capture screen
-                                navController.navigate("location_capture/${customer.customerId}/${customer.customerName}")
+                                navController.navigate("location_capture/${customer.customerId}/${customer.customerName}/${customer.alamat}/${customer.wilayah}")
                             },
                             onOpenInMaps = { customer ->
                                 // Open customer location in Google Maps
@@ -275,7 +275,7 @@ fun CustomerSelectionScreen(
                             },
                             onManageLocationClick = { customer ->
                                 // Navigate to location capture screen
-                                navController.navigate("location_capture/${customer.customerId}/${customer.customerName}")
+                                navController.navigate("location_capture/${customer.customerId}/${customer.customerName}/${customer.alamat}/${customer.wilayah}")
                             },
                             onOpenInMaps = { customer ->
                                 // Open customer location in Google Maps

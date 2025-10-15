@@ -1,26 +1,60 @@
 package com.elsasa.btrade3.ui.screen
 
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import android.content.Context
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.LocationSearching
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.elsasa.btrade3.model.Customer
 import com.elsasa.btrade3.util.LocationStatus
+import com.elsasa.btrade3.util.LocationUtils
+import com.elsasa.btrade3.util.MapUtils
 import com.elsasa.btrade3.viewmodel.LocationCaptureViewModel
-import com.elsasa.btrade3.viewmodel.LocationCaptureViewModelFactory
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,6 +63,8 @@ fun LocationCaptureScreen(
     navController: NavController,
     customerId: String,
     customerName: String,
+    customerAddress: String,
+    customerCity: String,
     viewModel: LocationCaptureViewModel
 ) {
     val locationStatus by viewModel.locationStatus.collectAsState()
@@ -37,8 +73,8 @@ fun LocationCaptureScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val address by viewModel.address.collectAsState()
     val originalLocation by viewModel.originalLocation.collectAsState()
+    val nearbyCustomers by viewModel.nearbyCustomers.collectAsState()
 
-    // Load existing customer location when screen is created
     LaunchedEffect(Unit) {
         viewModel.loadCustomerLocation(customerId)
     }
@@ -46,7 +82,7 @@ fun LocationCaptureScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Set Location for $customerName") },
+                title = { Text("Set Customer Location") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -55,75 +91,222 @@ fun LocationCaptureScreen(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(padding),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // GPS Status Card
-            StatusCard(
-                locationStatus = locationStatus,
-                accuracy = accuracy,
-                isLoading = isLoading,
-                hasOriginalLocation = originalLocation != null
-            )
-
-            // Location Preview Card
-            if (location != null) {
-                LocationPreviewCard(
-                    location = location!!,
+            // Status Card
+            item {
+                StatusCard(
+                    locationStatus = locationStatus,
                     accuracy = accuracy,
-                    address = address,
+                    isLoading = isLoading,
                     hasOriginalLocation = originalLocation != null
                 )
             }
 
-            // Action Buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Cancel")
-                }
-
-                Button(
-                    onClick = {
-                        viewModel.saveLocationForCustomer(customerId)
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier.weight(1f),
-                    enabled = locationStatus == LocationStatus.LOCKED
-                ) {
-                    Text("Save Location")
-                }
-            }
-
-            // Manual GPS Capture Button
-
-            Button(
-                onClick = { viewModel.startLocationCapture() },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = viewModel.checkLocationPermission()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "GPS",
-                    modifier = Modifier.size(18.dp)
+            // Location Preview + Capture Button
+            item {
+                LocationPreviewCard(
+                    customerName = customerName,
+                    customerAddress = customerAddress,
+                    customerCity = customerCity,
+                    location = location,
+                    accuracy = accuracy,
+                    address = address,
+                    hasOriginalLocation = originalLocation != null,
+                    onCaptureClick = { viewModel.startLocationCapture() },
+                    canCapture = viewModel.checkLocationPermission(),
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Capture New Location")
             }
 
+            // Action Buttons (Cancel / Save)
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Cancel")
+                    }
+
+                    Button(
+                        onClick = {
+                            viewModel.saveLocationForCustomer(customerId)
+                            navController.popBackStack()
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = location != null
+                    ) {
+                        Text("Save Location")
+                    }
+                }
+            }
+
+            // Nearby Customers (Scrollable)
+            item {
+                if (location != null && nearbyCustomers.isNotEmpty()) {
+                    NearbyCustomersCard(
+                        nearbyCustomers = nearbyCustomers,
+                        currentLocation = location!!,
+                        onCustomerClick = { customer ->
+                            navController.navigate("location_capture/${customer.customerId}/${customer.customerName}")
+                        }
+                    )
+                } else if (location != null && nearbyCustomers.isEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.People,
+                                    contentDescription = "Nearby",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Nearby Customers",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "No customers found within 100 meters.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
+
+@Composable
+fun InfoCard(icon: ImageVector, title: String, message: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun NearbyCustomersCard(
+    nearbyCustomers: List<Customer>,
+    currentLocation: android.location.Location,
+    onCustomerClick: (Customer) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.People, contentDescription = "Nearby", tint = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Nearby Customers (${nearbyCustomers.size})",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Scrollable area within limited height
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 280.dp)
+            ) {
+                items(nearbyCustomers) { customer ->
+                    val distance = LocationUtils.calculateDistance(
+                        currentLocation.latitude,
+                        currentLocation.longitude,
+                        customer.latitude,
+                        customer.longitude
+                    )
+                    CustomerItem(customer, distance, onClick = { onCustomerClick(customer) })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomerItem(customer: Customer, distance: Float, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(customer.customerName, fontWeight = FontWeight.Medium)
+                Text(customer.customerCode, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    customer.alamat,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    "${distance.toInt()}m",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    "±${customer.accuracy.roundToInt()}m",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+
 
 @Composable
 fun StatusCard(
@@ -226,100 +409,98 @@ fun StatusCard(
 
 @Composable
 fun LocationPreviewCard(
+    customerName: String,
+    customerAddress: String,
+    customerCity: String,
     location: android.location.Location?,
     accuracy: Float,
     address: String?,
-    hasOriginalLocation: Boolean
+    hasOriginalLocation: Boolean,
+    onCaptureClick: () -> Unit,
+    canCapture: Boolean,
+    context: Context = LocalContext.current
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            //verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = "Location Preview",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            if (location != null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+            // Customer name header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top // Change from CenterVertically to Top
+            ) {
+                Column {
                     Text(
-                        text = "Latitude:",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = customerName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = location.latitude.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Longitude:",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = customerAddress,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Normal
                     )
                     Text(
-                        text = location.longitude.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
+                        text = customerCity,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Normal
                     )
                 }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Accuracy:",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "±${accuracy.roundToInt()}m",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = when (accuracy) {
-                            in 0f..10f -> Color.Green
-                            in 11f..50f -> Color.Yellow
-                            else -> Color.Red
-                        }
-                    )
-                }
-
-                // Show address if available
-                address?.let { addr ->
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                if (location != null) {
+                    IconButton(
+                        onClick = {
+                            MapUtils.openInGoogleMaps(
+                                context = context,
+                                latitude = location.latitude,
+                                longitude = location.longitude,
+                                label = customerName
+                            )
+                        },
+                        modifier = Modifier.size(28.dp)
                     ) {
-                        Text(
-                            text = "Address:",
-                            style = MaterialTheme.typography.bodyMedium
+                        Icon(
+                            imageVector = Icons.Default.Map,
+                            contentDescription = "Open Map",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(48.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
+                }
+            }
+            if (location != null) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = 3.dp,
+                    color = DividerDefaults.color
+                )
+
+                // Compact line: Lat | Long | Accuracy
+                Text(
+                    text = buildString {
+                        append("Lat: %.5f".format(location.latitude))
+                        append("   |   Lon: %.5f".format(location.longitude))
+                        append("   |   ±${accuracy.roundToInt()}m")
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                // Optional address line
+                address?.let {
                     Text(
-                        text = addr,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             } else {
@@ -328,6 +509,24 @@ fun LocationPreviewCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
+            Button(
+                onClick = onCaptureClick,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = canCapture
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationSearching,
+                    contentDescription = "GPS",
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Capture New Location")
             }
         }
     }
