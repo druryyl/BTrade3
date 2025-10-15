@@ -19,5 +19,6 @@ data class Customer(
     val latitude: Double = 0.0,      // New field
     val longitude: Double = 0.0,     // New field
     val accuracy: Float = 0.0f,      // GPS accuracy in meters
-    val locationTimestamp: Long = 0L // When location was set
+    val locationTimestamp: Long = 0L, // When location was set
+    val isUpdated: Boolean = false
 ): Parcelable

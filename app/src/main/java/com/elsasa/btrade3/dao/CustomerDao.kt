@@ -20,6 +20,8 @@ interface CustomerDao {
     @Query("SELECT * FROM customer_table WHERE customerCode = :customerCode")
     suspend fun getCustomerByCode(customerCode: String): Customer?
 
+    @Query("SELECT * FROM customer_table WHERE isUpdated = 1")
+    suspend fun getUpdatedCustomers(): List<Customer>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCustomer(customer: Customer)
 

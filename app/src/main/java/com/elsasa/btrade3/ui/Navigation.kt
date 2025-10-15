@@ -16,6 +16,7 @@ import com.elsasa.btrade3.database.AppDatabase
 import com.elsasa.btrade3.network.NetworkModule
 import com.elsasa.btrade3.repository.BarangRepository
 import com.elsasa.btrade3.repository.CustomerRepository
+import com.elsasa.btrade3.repository.CustomerSyncRepository
 import com.elsasa.btrade3.repository.OrderRepository
 import com.elsasa.btrade3.repository.NetworkRepository
 import com.elsasa.btrade3.repository.OrderSyncRepository
@@ -67,11 +68,13 @@ fun AppNavigation(
         database.orderDao(),
         database.orderItemDao()
     )
+    val apiService = NetworkModule.createApiService()
+
     val barangRepository = BarangRepository(database.barangDao())
     val customerRepository = CustomerRepository(database.customerDao())
+    val customerSyncRepository = CustomerSyncRepository(apiService, customerRepository)
     val salesPersonRepository = SalesPersonRepository(database.salesPersonDao()) // Add this
 
-    val apiService = NetworkModule.createApiService()
     val networkRepository = NetworkRepository(apiService)
     val syncRepository = SyncRepository(networkRepository, barangRepository, customerRepository, salesPersonRepository)
     val orderSyncRepository = OrderSyncRepository(apiService, orderRepository)
@@ -194,10 +197,11 @@ fun AppNavigation(
             val customerAddress = backStackEntry.arguments?.getString("customerAddress") ?: ""
             val customerCity = backStackEntry.arguments?.getString("customerCity") ?: ""
             val context = LocalContext.current
+            val userEmail = getUserEmail(context) ?: ""
             val viewModel: LocationCaptureViewModel = viewModel(
-                factory = LocationCaptureViewModelFactory(context, customerRepository)
+                factory = LocationCaptureViewModelFactory(context, customerRepository, customerSyncRepository)
             )
-            LocationCaptureScreen(navController, customerId, customerName, customerAddress, customerCity,viewModel)
+            LocationCaptureScreen(navController, customerId, customerName, customerAddress, customerCity, userEmail, viewModel)
         }
     }
 }

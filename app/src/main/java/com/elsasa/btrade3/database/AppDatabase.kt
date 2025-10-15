@@ -19,7 +19,7 @@ import com.elsasa.btrade3.model.SalesPerson
 
 @Database(
     entities = [Order::class, OrderItem::class, Barang::class, Customer::class, SalesPerson::class],
-    version = 21,
+    version = 22,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -115,11 +115,17 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE customer_table ADD COLUMN locationTimestamp INTEGER NOT NULL DEFAULT 0")
             }
         }
-        val MIGRATION_20_21 = object : Migration(19, 20) {
+        val MIGRATION_20_21 = object : Migration(20, 21) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Add location-related columns to customer_table
                 db.execSQL("ALTER TABLE order_table ADD COLUMN customerLatitude REAL NOT NULL DEFAULT 0.0")
                 db.execSQL("ALTER TABLE order_table ADD COLUMN customerLongitude REAL NOT NULL DEFAULT 0.0")
+            }
+        }
+        val MIGRATION_21_22 = object : Migration(21, 22) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add location-related columns to customer_table
+                db.execSQL("ALTER TABLE customer_table ADD COLUMN isUpdated INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

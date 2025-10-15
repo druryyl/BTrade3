@@ -25,16 +25,23 @@ class CustomerRepository (
         latitude: Double,
         longitude: Double,
         accuracy: Float,
-        timestamp: Long
+        timestamp: Long,
+        isUpdated: Boolean = true  // Default to true when location is updated
     ) {
         getCustomerById(customerId)?.let { customer ->
             val updatedCustomer = customer.copy(
                 latitude = latitude,
                 longitude = longitude,
                 accuracy = accuracy,
-                locationTimestamp = timestamp
+                locationTimestamp = timestamp,
+                isUpdated = isUpdated
             )
             updateCustomer(updatedCustomer)
         }
+    }
+
+    // Add method to get customers that need sync
+    suspend fun getUpdatedCustomers(): List<Customer> {
+        return customerDao.getUpdatedCustomers()
     }
 }

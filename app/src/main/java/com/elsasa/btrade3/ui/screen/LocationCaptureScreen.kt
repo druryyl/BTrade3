@@ -65,7 +65,8 @@ fun LocationCaptureScreen(
     customerName: String,
     customerAddress: String,
     customerCity: String,
-    viewModel: LocationCaptureViewModel
+    userEmail: String, // Add userEmail parameter
+    viewModel: LocationCaptureViewModel,
 ) {
     val locationStatus by viewModel.locationStatus.collectAsState()
     val location by viewModel.location.collectAsState()
@@ -138,7 +139,7 @@ fun LocationCaptureScreen(
 
                     Button(
                         onClick = {
-                            viewModel.saveLocationForCustomer(customerId)
+                            viewModel.saveLocationForCustomer(customerId, userEmail)
                             navController.popBackStack()
                         },
                         modifier = Modifier.weight(1f),
