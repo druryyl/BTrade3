@@ -193,7 +193,7 @@ fun OrderEntryScreen(
                         return@FakturEntryContent
                     }
 
-                    navController.navigate("customer_selection") {
+                    navController.navigate("customer_selection?fromMain=false") {
                         popUpTo("order_entry") { saveState = true }
                         launchSingleTop = true
                         restoreState = true

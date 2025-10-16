@@ -24,8 +24,7 @@ import kotlinx.coroutines.launch
 class LocationCaptureViewModel(
     private val context: Context,
     private val customerRepository: CustomerRepository,
-    private val customerSyncRepository: CustomerSyncRepository // Add this dependency
-
+    private val customerSyncRepository: CustomerSyncRepository
 ) : ViewModel() {
 
     private val _locationStatus = MutableStateFlow(LocationStatus.NO_SIGNAL)
@@ -43,15 +42,15 @@ class LocationCaptureViewModel(
     private val _address = MutableStateFlow<String?>(null)
     val address: StateFlow<String?> = _address.asStateFlow()
 
-
-    private val _originalLocation = MutableStateFlow<Location?>(null) // Store original location
+    private val _originalLocation = MutableStateFlow<Location?>(null)
     val originalLocation: StateFlow<Location?> = _originalLocation.asStateFlow()
 
     private val _nearbyCustomers = MutableStateFlow<List<Customer>>(emptyList())
     val nearbyCustomers: StateFlow<List<Customer>> = _nearbyCustomers.asStateFlow()
 
     private val _allCustomers = MutableStateFlow<List<Customer>>(emptyList())
-    private var _selectedCustomerWilayah: String = "" // Store the selected customer's wilayah
+    private var _selectedCustomerWilayah: String = ""
+    private var _selectedCustomerId: String = "" // Store selected customer ID to exclude from results
     private val locationHelper = LocationHelper(context)
     private val reverseGeocodingHelper = ReverseGeocodingHelper(context)
 
@@ -62,13 +61,14 @@ class LocationCaptureViewModel(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-
     // Load existing customer location
     fun loadCustomerLocation(customerId: String) {
+        _selectedCustomerId = customerId // Store the selected customer ID
+
         viewModelScope.launch {
             try {
                 customerRepository.getCustomerById(customerId)?.let { customer ->
-                    _selectedCustomerWilayah = customer.wilayah // Store the wilayah
+                    _selectedCustomerWilayah = customer.wilayah
 
                     if (customer.latitude != 0.0 && customer.longitude != 0.0 &&
                         !customer.latitude.isNaN() && !customer.longitude.isNaN()) {
@@ -113,6 +113,7 @@ class LocationCaptureViewModel(
             }
         }
     }
+
     // Start GPS location capture
     fun startLocationCapture() {
         if (!checkLocationPermission()) {
@@ -122,12 +123,11 @@ class LocationCaptureViewModel(
 
         _isLoading.value = true
         _locationStatus.value = LocationStatus.ACQUIRING
-        _address.value = null // Clear previous address
+        _address.value = null
 
         locationHelper.getCurrentLocation(
             onLocationResult = { locationResult ->
                 locationResult.lastLocation?.let { loc ->
-
                     // Validate the new location before using it
                     if (loc.latitude.isNaN() || loc.longitude.isNaN()) {
                         _locationStatus.value = LocationStatus.NO_SIGNAL
@@ -139,7 +139,7 @@ class LocationCaptureViewModel(
                     _accuracy.value = loc.accuracy
                     _locationStatus.value = LocationStatus.LOCKED
 
-                    // Get address for the new location - wrap in try-catch
+                    // Get address for the new location
                     viewModelScope.launch {
                         try {
                             val address = reverseGeocodingHelper.getAddressFromLocation(loc)
@@ -175,23 +175,30 @@ class LocationCaptureViewModel(
                     return
                 }
 
-                // Only process customers from the same wilayah (much more efficient)
-                val customersToProcess = if (_selectedCustomerWilayah.isNotEmpty()) {
-                    _allCustomers.value.filter { customer ->
-                        customer.wilayah == _selectedCustomerWilayah
+                // Process in background to avoid blocking UI
+                viewModelScope.launch {
+                    // Filter customers by wilayah and exclude the selected customer
+                    val customersToProcess = if (_selectedCustomerWilayah.isNotEmpty()) {
+                        _allCustomers.value.filter { customer ->
+                            customer.wilayah == _selectedCustomerWilayah &&
+                                    customer.customerId != _selectedCustomerId // Exclude selected customer
+                        }
+                    } else {
+                        _allCustomers.value.filter { customer ->
+                            customer.customerId != _selectedCustomerId // Always exclude selected customer
+                        }
                     }
-                } else {
-                    _allCustomers.value
+
+                    val nearby = LocationUtils.getCustomersWithinRadius(
+                        currentLocation.latitude,
+                        currentLocation.longitude,
+                        customersToProcess,
+                        100f // 100 meters radius
+                    )
+
+                    // Update UI on main thread
+                    _nearbyCustomers.value = nearby
                 }
-
-                val nearby = LocationUtils.getCustomersWithinRadius(
-                    currentLocation.latitude,
-                    currentLocation.longitude,
-                    _allCustomers.value,
-                    100f // 100 meters radius
-                )
-
-                _nearbyCustomers.value = nearby
             } else {
                 _nearbyCustomers.value = emptyList()
             }
@@ -199,6 +206,7 @@ class LocationCaptureViewModel(
             _nearbyCustomers.value = emptyList()
         }
     }
+
     // Use the current displayed location to get address
     fun refreshAddress() {
         val currentLocation = _location.value
@@ -222,7 +230,7 @@ class LocationCaptureViewModel(
                     longitude = currentLocation.longitude,
                     accuracy = currentLocation.accuracy,
                     timestamp = System.currentTimeMillis(),
-                    isUpdated = true  // Set to true when location is updated
+                    isUpdated = true
                 )
 
                 // Sync the updated location to cloud
@@ -231,19 +239,16 @@ class LocationCaptureViewModel(
                     // Handle sync result if needed (show toast, log, etc.)
                 } catch (e: Exception) {
                     // Handle sync error - location is still saved locally
-                    // You might want to show an error message to the user
                 }
             }
         }
     }
-
 
     fun resetToOriginalLocation() {
         _location.value = _originalLocation.value
         _accuracy.value = _originalLocation.value?.accuracy ?: 0f
         if (_originalLocation.value != null) {
             _locationStatus.value = LocationStatus.LOCKED
-            // Refresh address for original location
             refreshAddress()
         } else {
             _locationStatus.value = LocationStatus.NO_SIGNAL

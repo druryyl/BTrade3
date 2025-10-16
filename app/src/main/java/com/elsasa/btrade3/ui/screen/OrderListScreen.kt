@@ -374,7 +374,7 @@ fun OverflowMenu(
             DropdownMenuItem(
                 text = { Text("Manage Customers") },
                 onClick = {
-                    navController.navigate("customer_selection")
+                    navController.navigate("customer_selection?fromMain=true")
                     expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.People, contentDescription = null) }

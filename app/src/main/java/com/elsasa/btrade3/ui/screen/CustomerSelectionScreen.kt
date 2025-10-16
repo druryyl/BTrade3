@@ -343,19 +343,28 @@ fun CustomerItem(
                 )
 
                 if (hasLocation) {
-                    Text(
-                        text = "±${customer.accuracy.roundToInt()}m",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Icon(
-                        imageVector = Icons.Default.MyLocation,
-                        contentDescription = "Accurate",
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+//                    Text(
+//                        text = "±${customer.accuracy.roundToInt()}m",
+//                        style = MaterialTheme.typography.labelSmall,
+//                        color = MaterialTheme.colorScheme.primary
+//                    )
+//                    Spacer(Modifier.width(4.dp))
+//                    Icon(
+//                        imageVector = Icons.Default.MyLocation,
+//                        contentDescription = "Accurate",
+//                        modifier = Modifier.size(14.dp),
+//                        tint = MaterialTheme.colorScheme.primary
+//                    )
+                    IconButton(
+                        onClick = { onOpenInMaps(customer) },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Map,
+                            contentDescription = "Open Map",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }                }
             }
 
             Text(
@@ -403,16 +412,16 @@ fun CustomerItem(
                 }
 
                 if (hasLocation) {
-                    IconButton(
-                        onClick = { onOpenInMaps(customer) },
-                        modifier = Modifier.size(28.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Map,
-                            contentDescription = "Open Map",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
+//                    IconButton(
+//                        onClick = { onOpenInMaps(customer) },
+//                        modifier = Modifier.size(28.dp)
+//                    ) {
+//                        Icon(
+//                            imageVector = Icons.Default.Map,
+//                            contentDescription = "Open Map",
+//                            tint = MaterialTheme.colorScheme.primary
+//                        )
+//                    }
                 }
             }
         }

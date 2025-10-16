@@ -1,7 +1,6 @@
 package com.elsasa.btrade3.util
 
 import android.location.Location
-import android.util.Log
 
 object LocationUtils {
     /**

@@ -292,13 +292,13 @@ fun CustomerItem(customer: Customer, distance: Float, onClick: () -> Unit) {
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    "${distance.toInt()}m",
-                    style = MaterialTheme.typography.bodySmall,
+                    "Distance:${distance.toInt()}m",
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    "±${customer.accuracy.roundToInt()}m",
+                    "Accuracy:±${customer.accuracy.roundToInt()}m",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

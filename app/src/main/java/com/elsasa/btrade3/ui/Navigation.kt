@@ -114,14 +114,23 @@ fun AppNavigation(
             OrderEntryScreen(navController, viewModel, fakturId, statusSync)
         }
 
-        composable("customer_selection") {
+        composable(
+            "customer_selection?fromMain={fromMain}",
+            arguments = listOf(
+                navArgument("fromMain") {
+                    type = NavType.BoolType
+                    defaultValue = false // Default to false (called from order entry)
+                }
+            )
+        ) { backStackEntry ->
+            val fromMain = backStackEntry.arguments?.getBoolean("fromMain") ?: false
             val viewModel: CustomerSelectionViewModel = viewModel(
                 factory = CustomerSelectionViewModelFactory(customerRepository)
             )
             CustomerSelectionScreen(
                 navController = navController,
                 viewModel = viewModel,
-                fromMain = true // Set to true when accessed from main menu
+                fromMain = fromMain
             )
         }
 
