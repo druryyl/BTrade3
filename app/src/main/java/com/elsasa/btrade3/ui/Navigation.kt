@@ -15,6 +15,7 @@ import androidx.navigation.navArgument
 import com.elsasa.btrade3.database.AppDatabase
 import com.elsasa.btrade3.network.NetworkModule
 import com.elsasa.btrade3.repository.BarangRepository
+import com.elsasa.btrade3.repository.CheckInRepository
 import com.elsasa.btrade3.repository.CustomerRepository
 import com.elsasa.btrade3.repository.CustomerSyncRepository
 import com.elsasa.btrade3.repository.OrderRepository
@@ -24,6 +25,7 @@ import com.elsasa.btrade3.repository.SalesPersonRepository
 import com.elsasa.btrade3.repository.SyncRepository
 import com.elsasa.btrade3.ui.screen.AddBarangScreen
 import com.elsasa.btrade3.ui.screen.BarangSelectionScreen
+import com.elsasa.btrade3.ui.screen.CheckInScreen
 import com.elsasa.btrade3.ui.screen.CustomerSelectionScreen
 import com.elsasa.btrade3.ui.screen.OrderEntryScreen
 import com.elsasa.btrade3.ui.screen.OrderListScreen
@@ -38,6 +40,8 @@ import com.elsasa.btrade3.viewmodel.AddBarangViewModel
 import com.elsasa.btrade3.viewmodel.AddBarangViewModelFactory
 import com.elsasa.btrade3.viewmodel.BarangSelectionViewModel
 import com.elsasa.btrade3.viewmodel.BarangSelectionViewModelFactory
+import com.elsasa.btrade3.viewmodel.CheckInViewModel
+import com.elsasa.btrade3.viewmodel.CheckInViewModelFactory
 import com.elsasa.btrade3.viewmodel.CustomerSelectionViewModel
 import com.elsasa.btrade3.viewmodel.CustomerSelectionViewModelFactory
 import com.elsasa.btrade3.viewmodel.OrderEntryViewModel
@@ -73,7 +77,8 @@ fun AppNavigation(
     val barangRepository = BarangRepository(database.barangDao())
     val customerRepository = CustomerRepository(database.customerDao())
     val customerSyncRepository = CustomerSyncRepository(apiService, customerRepository)
-    val salesPersonRepository = SalesPersonRepository(database.salesPersonDao()) // Add this
+    val salesPersonRepository = SalesPersonRepository(database.salesPersonDao())
+    val checkInRepository = CheckInRepository(database.checkInDao())
 
     val networkRepository = NetworkRepository(apiService)
     val syncRepository = SyncRepository(networkRepository, barangRepository, customerRepository, salesPersonRepository)
@@ -211,6 +216,14 @@ fun AppNavigation(
                 factory = LocationCaptureViewModelFactory(context, customerRepository, customerSyncRepository)
             )
             LocationCaptureScreen(navController, customerId, customerName, customerAddress, customerCity, userEmail, viewModel)
+        }
+        composable("check_in") {
+            val context = LocalContext.current
+            val userEmail = getUserEmail(context) ?: ""
+            val viewModel: CheckInViewModel = viewModel(
+                factory = CheckInViewModelFactory(context, checkInRepository, customerRepository)
+            )
+            CheckInScreen(navController, userEmail, viewModel)
         }
     }
 }

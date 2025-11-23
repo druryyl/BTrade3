@@ -244,7 +244,10 @@ fun OrderListScreen(
         floatingActionButton = {
             if (!isSelectionMode && !isSearchActive) {
                 MovableFloatingActionButton(
+                    isMultiAction = true,
                     onClick = { navController.navigate("faktur_entry/new/DRAFT") },
+                    onNewOrderClick = { navController.navigate("faktur_entry/new/DRAFT") },
+                    onCheckInClick = { navController.navigate("check_in") },
                     modifier = Modifier
                         .padding(end = 16.dp, bottom = 16.dp)
                 )

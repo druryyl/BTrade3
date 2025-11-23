@@ -7,19 +7,21 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.elsasa.btrade3.dao.BarangDao
+import com.elsasa.btrade3.dao.CheckInDao
 import com.elsasa.btrade3.dao.CustomerDao
 import com.elsasa.btrade3.dao.OrderDao
 import com.elsasa.btrade3.dao.OrderItemDao
 import com.elsasa.btrade3.dao.SalesPersonDao
 import com.elsasa.btrade3.model.Barang
+import com.elsasa.btrade3.model.CheckIn
 import com.elsasa.btrade3.model.Customer
 import com.elsasa.btrade3.model.Order
 import com.elsasa.btrade3.model.OrderItem
 import com.elsasa.btrade3.model.SalesPerson
 
 @Database(
-    entities = [Order::class, OrderItem::class, Barang::class, Customer::class, SalesPerson::class],
-    version = 22,
+    entities = [Order::class, OrderItem::class, Barang::class, Customer::class, SalesPerson::class, CheckIn::class],
+    version = 23,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -28,6 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun barangDao(): BarangDao
     abstract fun customerDao(): CustomerDao
     abstract fun salesPersonDao(): SalesPersonDao
+    abstract fun checkInDao(): CheckInDao
 
     companion object {
         @Volatile
@@ -42,7 +45,8 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 .fallbackToDestructiveMigration(false) // Add this for development
                 .addMigrations(MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18,
-                    MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21)
+                    MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21, MIGRATION_21_22,
+                    MIGRATION_22_23)
                 .build()
                 INSTANCE = instance
                 instance
@@ -128,5 +132,30 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE customer_table ADD COLUMN isUpdated INTEGER NOT NULL DEFAULT 0")
             }
         }
+        // Migration for CheckIn table
+        val MIGRATION_22_23 = object : Migration(22, 23) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+            CREATE TABLE IF NOT EXISTS checkin_table (
+                checkInId TEXT NOT NULL,
+                checkInDate TEXT NOT NULL,
+                checkInTime TEXT NOT NULL,
+                userEmail TEXT NOT NULL,
+                checkInLatitude REAL NOT NULL,
+                checkInLongitude REAL NOT NULL,
+                accuracy REAL NOT NULL,
+                customerId TEXT NOT NULL,
+                customerCode TEXT NOT NULL,
+                customerName TEXT NOT NULL,
+                customerAddress TEXT NOT NULL,
+                customerLatitude REAL NOT NULL,
+                customerLongitude REAL NOT NULL,
+                statusSync TEXT NOT NULL,
+                PRIMARY KEY(checkInId)
+            )
+        """.trimIndent())
+            }
+        }
+
     }
 }
