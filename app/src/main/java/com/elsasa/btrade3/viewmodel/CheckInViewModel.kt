@@ -1,5 +1,7 @@
 package com.elsasa.btrade3.viewmodel
 
+import com.elsasa.btrade3.model.Customer
+
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -8,12 +10,12 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elsasa.btrade3.model.CheckIn
-import com.elsasa.btrade3.model.Customer
 import com.elsasa.btrade3.repository.CheckInRepository
 import com.elsasa.btrade3.repository.CustomerRepository
 import com.elsasa.btrade3.util.LocationHelper
 import com.elsasa.btrade3.util.LocationStatus
 import com.elsasa.btrade3.util.LocationUtils
+import com.elsasa.btrade3.util.ReverseGeocodingHelper
 import com.elsasa.btrade3.util.UlidHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +24,6 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.flow.first
-
 class CheckInViewModel(
     private val context: Context,
     private val checkInRepository: CheckInRepository,
@@ -41,6 +42,9 @@ class CheckInViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _currentAddress = MutableStateFlow<String?>(null)
+    val currentAddress: StateFlow<String?> = _currentAddress.asStateFlow()
+
     private val _nearbyCustomers = MutableStateFlow<List<Customer>>(emptyList())
     val nearbyCustomers: StateFlow<List<Customer>> = _nearbyCustomers.asStateFlow()
 
@@ -49,7 +53,11 @@ class CheckInViewModel(
 
     private val _allCustomers = MutableStateFlow<List<Customer>>(emptyList())
 
+    private val _selectedCustomerWilayah: MutableStateFlow<String> = MutableStateFlow("")
+    private val _selectedCustomerId: MutableStateFlow<String> = MutableStateFlow("")
+
     private val locationHelper = LocationHelper(context)
+    private val reverseGeocodingHelper = ReverseGeocodingHelper(context)
 
     fun checkLocationPermission(): Boolean {
         return ActivityCompat.checkSelfPermission(
@@ -73,6 +81,7 @@ class CheckInViewModel(
 
         _isLoading.value = true
         _locationStatus.value = LocationStatus.ACQUIRING
+        _currentAddress.value = null // Clear previous address
 
         locationHelper.getCurrentLocation(
             onLocationResult = { locationResult ->
@@ -80,6 +89,13 @@ class CheckInViewModel(
                     _currentLocation.value = loc
                     _accuracy.value = loc.accuracy
                     _locationStatus.value = LocationStatus.LOCKED
+
+                    // Get address for the new location
+                    viewModelScope.launch {
+                        val address = reverseGeocodingHelper.getAddressFromLocation(loc)
+                        _currentAddress.value = address
+                    }
+
                     updateNearbyCustomers()
                 } ?: run {
                     _locationStatus.value = LocationStatus.NO_SIGNAL
@@ -93,6 +109,7 @@ class CheckInViewModel(
         )
     }
 
+    // Update nearby customers based on current location
     private fun updateNearbyCustomers() {
         try {
             val currentLocation = _currentLocation.value
@@ -103,17 +120,30 @@ class CheckInViewModel(
                     return
                 }
 
-                // Filter customers within 100 meters and exclude the selected customer
-                val nearby = LocationUtils.getCustomersWithinRadius(
-                    currentLocation.latitude,
-                    currentLocation.longitude,
-                    _allCustomers.value.filter { customer ->
-                        customer.customerId != _selectedCustomer.value?.customerId // Exclude selected customer
-                    },
-                    100f // 100 meters radius
-                )
+                // Process in background to avoid blocking UI
+                viewModelScope.launch {
+                    // Filter customers by wilayah and exclude the selected customer
+                    val customersToProcess = if (_selectedCustomerWilayah.value.isNotEmpty()) {
+                        _allCustomers.value.filter { customer ->
+                            customer.wilayah == _selectedCustomerWilayah.value &&
+                                    customer.customerId != _selectedCustomerId.value
+                        }
+                    } else {
+                        _allCustomers.value.filter { customer ->
+                            customer.customerId != _selectedCustomerId.value
+                        }
+                    }
 
-                _nearbyCustomers.value = nearby
+                    val nearby = LocationUtils.getCustomersWithinRadius(
+                        currentLocation.latitude,
+                        currentLocation.longitude,
+                        customersToProcess,
+                        100f // 100 meters radius
+                    )
+
+                    // Update UI on main thread
+                    _nearbyCustomers.value = nearby
+                }
             } else {
                 _nearbyCustomers.value = emptyList()
             }
@@ -123,6 +153,8 @@ class CheckInViewModel(
     }
 
     fun selectCustomer(customer: Customer) {
+        _selectedCustomerId.value = customer.customerId
+        _selectedCustomerWilayah.value = customer.wilayah
         _selectedCustomer.value = customer
         // Update nearby customers to exclude the selected one
         updateNearbyCustomers()
@@ -130,6 +162,8 @@ class CheckInViewModel(
 
     fun unselectCustomer() {
         _selectedCustomer.value = null
+        _selectedCustomerId.value = ""
+        _selectedCustomerWilayah.value = ""
         updateNearbyCustomers()
     }
 
@@ -166,9 +200,20 @@ class CheckInViewModel(
         }
     }
 
+    fun refreshCurrentAddress() {
+        val currentLoc = _currentLocation.value
+        if (currentLoc != null) {
+            viewModelScope.launch {
+                val address = reverseGeocodingHelper.getAddressFromLocation(currentLoc)
+                _currentAddress.value = address
+            }
+        }
+    }
+
     fun resetLocation() {
         _currentLocation.value = null
         _accuracy.value = 0f
+        _currentAddress.value = null
         _locationStatus.value = LocationStatus.NO_SIGNAL
         _selectedCustomer.value = null
         _nearbyCustomers.value = emptyList()

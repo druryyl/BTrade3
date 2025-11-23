@@ -64,6 +64,7 @@ fun CheckInScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val nearbyCustomers by viewModel.nearbyCustomers.collectAsState()
     val selectedCustomer by viewModel.selectedCustomer.collectAsState()
+    val currentAddress by viewModel.currentAddress.collectAsState() // Add this line
 
     LaunchedEffect(Unit) {
         viewModel.loadNearbyCustomers()
@@ -90,6 +91,7 @@ fun CheckInScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Current Location Status Card
+// Current Location Status Card
             Card(
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -108,7 +110,7 @@ fun CheckInScreen(
                             tint = when (locationStatus) {
                                 LocationStatus.NO_PERMISSION -> MaterialTheme.colorScheme.error
                                 LocationStatus.NO_SIGNAL -> MaterialTheme.colorScheme.error
-                                LocationStatus.ACQUIRING -> MaterialTheme.colorScheme.secondary
+                                LocationStatus.ACQUIRING -> MaterialTheme.colorScheme.error
                                 LocationStatus.LOCKED -> MaterialTheme.colorScheme.primary
                             }
                         )
@@ -140,7 +142,7 @@ fun CheckInScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Safe access to currentLocation
+                    // Current Location Details
                     currentLocation?.let { location ->
                         Column {
                             Text(
@@ -165,6 +167,29 @@ fun CheckInScreen(
                                     else -> Color.Red
                                 }
                             )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Current Address Section
+                            Text(
+                                text = "Current Address:",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+
+                            currentAddress?.let { address ->
+                                Text(
+                                    text = address,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } ?: run {
+                                Text(
+                                    text = "Address not available",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                     } ?: run {
                         Text(
@@ -330,7 +355,9 @@ fun CheckInScreen(
 
             // Refresh Location Button
             OutlinedButton(
-                onClick = { viewModel.startLocationCapture() },
+                onClick = {
+                    viewModel.startLocationCapture() // This will also update the address
+                },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = viewModel.checkLocationPermission()
             ) {
