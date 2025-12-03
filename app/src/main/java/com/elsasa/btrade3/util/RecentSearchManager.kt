@@ -12,7 +12,7 @@ class RecentSearchManager(
 ) {
     private val prefs: SharedPreferences = context.getSharedPreferences("recent_searches$searchType", Context.MODE_PRIVATE)
     private val gson = Gson()
-    private val MAX_RECENT_SEARCHES = 10
+    private val MAX_RECENT_SEARCHES = 20
 
     fun addRecentSearch(query: String) {
         if (query.isBlank()) return

@@ -7,11 +7,16 @@ import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.NavigateBefore
+import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.NavigateBefore
+import androidx.compose.material.icons.filled.NavigateNext
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +30,9 @@ import com.elsasa.btrade3.model.CheckIn
 import com.elsasa.btrade3.viewmodel.CheckInHistoryViewModel
 import java.util.*
 import kotlin.math.roundToInt
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,11 +41,17 @@ fun CheckInHistoryScreen(
     viewModel: CheckInHistoryViewModel
 ) {
     val checkIns by viewModel.checkIns.collectAsState()
+    val filteredCheckIns by viewModel.filteredCheckIns.collectAsState()
+    val selectedDate by viewModel.selectedDate.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val checkInCounts by viewModel.checkInCounts.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        viewModel.loadCheckInsSimple()
+        // Set default to today
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        viewModel.setSelectedDate(today)
+        viewModel.loadCheckIns()
     }
 
     Scaffold(
@@ -52,76 +66,238 @@ fun CheckInHistoryScreen(
             )
         }
     ) { padding ->
-        if (isLoading && checkIns.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (checkIns.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            // Date Filter Card
+            DateFilterCard(
+                selectedDate = selectedDate,
+                checkInCounts = checkInCounts,
+                onDateSelected = { viewModel.setSelectedDate(it) },
+                onPreviousDay = { viewModel.navigateToDate(-1) },
+                onNextDay = { viewModel.navigateToDate(1) },
+                context = context
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = "No Check-ins",
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "No check-in history found",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Start checking in to see your history here",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    CircularProgressIndicator()
                 }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(checkIns) { checkIn ->
-                    CheckInHistoryCard(
-                        checkIn = checkIn,
-                        onOpenInMap = { checkIn ->
-                            openInGoogleMaps(
-                                context = context,
-                                latitude = checkIn.checkInLatitude,
-                                longitude = checkIn.checkInLongitude,
-                                label = "${checkIn.customerName} - ${checkIn.checkInDate} ${checkIn.checkInTime}"
+            } else if (filteredCheckIns.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "No Check-ins",
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = if (selectedDate.isNotEmpty()) "No check-ins for selected date" else "No check-in history found",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (selectedDate.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Date: $selectedDate",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        },
-                        onDelete = { checkIn ->
-                            viewModel.deleteCheckIn(checkIn.checkInId)
+                        } else {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Start checking in to see your history here",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
-                    )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(filteredCheckIns) { index, checkIn ->
+                        // Calculate sequential number in descending order (most recent first = higher number)
+                        val sequentialNumber = filteredCheckIns.size - index
+                        CheckInHistoryCard(
+                            checkIn = checkIn,
+                            sequentialNumber = sequentialNumber,
+                            onOpenInMap = { checkIn ->
+                                openInGoogleMaps(
+                                    context = context,
+                                    latitude = checkIn.checkInLatitude,
+                                    longitude = checkIn.checkInLongitude,
+                                    label = "${checkIn.customerName} - ${checkIn.checkInDate} ${checkIn.checkInTime}"
+                                )
+                            },
+                            onDelete = { checkIn ->
+                                viewModel.deleteCheckIn(checkIn.checkInId)
+                            }
+                        )
+                    }
                 }
             }
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DateFilterCard(
+    selectedDate: String,
+    checkInCounts: Map<String, Int>,
+    onDateSelected: (String) -> Unit,
+    onPreviousDay: () -> Unit,
+    onNextDay: () -> Unit,
+    context: Context
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Filter by Date",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onPreviousDay,
+                    enabled = selectedDate.isNotEmpty()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.NavigateBefore,
+                        contentDescription = "Previous Day",
+                        tint = if (selectedDate.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = { showDatePicker = true },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text(
+                        text = if (selectedDate.isNotEmpty()) selectedDate else "Select Date",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                IconButton(
+                    onClick = onNextDay,
+                    enabled = selectedDate.isNotEmpty()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.NavigateNext,
+                        contentDescription = "Next Day",
+                        tint = if (selectedDate.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Display check-in count for selected date
+            if (selectedDate.isNotEmpty()) {
+                val count = checkInCounts[selectedDate] ?: 0
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Check-ins",
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Check-ins today: $count",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+
+    // Date Picker Dialog
+    // Date Picker Dialog
+    if (showDatePicker) {
+        // Create and remember the DatePickerState
+        val datePickerState = rememberDatePickerState()
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        // Get the selected date from the state, format it, and pass it up
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val formattedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(millis))
+                            onDateSelected(formattedDate)
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDatePicker = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            // The DatePicker now takes the state object
+            DatePicker(state = datePickerState)
+        }
+    }
+}
+
 @Composable
 fun CheckInHistoryCard(
     checkIn: CheckIn,
+    sequentialNumber: Int, // New parameter for sequential numbering (descending order)
     onOpenInMap: (CheckIn) -> Unit,
     onDelete: (CheckIn) -> Unit
 ) {
@@ -137,22 +313,26 @@ fun CheckInHistoryCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Header with customer info
+            // Header with sequential number and customer info
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "#$sequentialNumber",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = checkIn.customerName,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Code: ${checkIn.customerCode}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -181,6 +361,14 @@ fun CheckInHistoryCard(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Code: ${checkIn.customerCode}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -292,6 +480,17 @@ fun CheckInHistoryCard(
         )
     }
 }
+
+// Extension function to convert date string to milliseconds
+fun String.toMillis(): Long? {
+    return try {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        sdf.parse(this)?.time
+    } catch (e: Exception) {
+        null
+    }
+}
+
 // Utility function to open location in Google Maps
 fun openInGoogleMaps(context: Context, latitude: Double, longitude: Double, label: String = "") {
     val uri = if (label.isNotEmpty()) {

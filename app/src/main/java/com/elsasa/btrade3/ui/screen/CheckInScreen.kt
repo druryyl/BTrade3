@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
@@ -87,7 +89,8 @@ fun CheckInScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()), // Make the entire column scrollable
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Current Location Status Card
@@ -201,8 +204,27 @@ fun CheckInScreen(
                 }
             }
 
-            // Selected Customer Card
+
+            // Check In Button (moved to top of selected customer section)
             selectedCustomer?.let { customer ->
+                Button(
+                    onClick = {
+                        viewModel.checkIn(userEmail)
+                        navController.popBackStack()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Check In",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Check In - ${customer.customerName}")
+                }
+                // Selected Customer Card
                 Card(
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -331,26 +353,6 @@ fun CheckInScreen(
                         }
                     }
                 }
-            }
-
-            // Check In Button
-            Button(
-                onClick = {
-                    viewModel.checkIn(userEmail)
-                    navController.popBackStack()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                enabled = selectedCustomer != null && currentLocation != null
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Check In",
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Check In")
             }
 
             // Refresh Location Button
