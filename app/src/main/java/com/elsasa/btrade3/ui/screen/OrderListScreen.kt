@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.MoreVert
@@ -244,7 +245,10 @@ fun OrderListScreen(
         floatingActionButton = {
             if (!isSelectionMode && !isSearchActive) {
                 MovableFloatingActionButton(
+                    isMultiAction = true,
                     onClick = { navController.navigate("faktur_entry/new/DRAFT") },
+                    onNewOrderClick = { navController.navigate("faktur_entry/new/DRAFT") },
+                    onCheckInClick = { navController.navigate("check_in") },
                     modifier = Modifier
                         .padding(end = 16.dp, bottom = 16.dp)
                 )
@@ -378,6 +382,14 @@ fun OverflowMenu(
                     expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.People, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Check-In History") },
+                onClick = {
+                    navController.navigate("check_in_history")
+                    expanded = false
+                },
+                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
             )
             DropdownMenuItem(
                 text = { Text("Sync Data") },
