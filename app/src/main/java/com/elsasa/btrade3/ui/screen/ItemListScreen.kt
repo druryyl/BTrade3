@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,6 +28,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -79,7 +81,28 @@ fun ItemListScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
+                },
+                actions = {
+                    // Shortcut button to Order List Screen - only show when there are items
+                    if (items.isNotEmpty()) {
+                        OutlinedButton(
+                            onClick = {
+                                // Navigate to Order List Screen (pop back to the main order list)
+                                navController.navigate("faktur_list") {
+                                    popUpTo("faktur_list") { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            },
+                            modifier = Modifier,
+                            enabled = items.isNotEmpty() // Only enabled when there are items
+                           ) {
+                            Text(
+                                "Selesai"
+                            )
+                        }
+                    }
                 }
+
             )
         },
         floatingActionButton = {
