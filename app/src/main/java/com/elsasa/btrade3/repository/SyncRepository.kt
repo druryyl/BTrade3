@@ -1,5 +1,6 @@
 package com.elsasa.btrade3.repository
 
+import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,9 +22,9 @@ class SyncRepository(
         object Loading : SyncResult()
     }
 
-    suspend fun syncBarangs(): SyncResult = withContext(Dispatchers.IO) {
+    suspend fun syncBarangs(context: Context): SyncResult = withContext(Dispatchers.IO) {
         try {
-            val result = networkRepository.fetchBarangs()
+            val result = networkRepository.fetchBarangs(context)
 
             return@withContext result.fold(
                 onSuccess = { barangs ->

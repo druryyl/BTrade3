@@ -7,11 +7,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object NetworkModule {
-    private const val BASE_URL = "http://dev.smart-ics.com:8089/belajar-api/api/" // Replace with your actual API URL
+    private const val BASE_URL = "http://dev.smart-ics.com:8089/belajar-api/api/"
 
     fun createApiService(): ApiService {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY // Use BASIC for production
+            level = HttpLoggingInterceptor.Level.BODY
         }
 
         val okHttpClient = OkHttpClient.Builder()

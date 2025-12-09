@@ -1,24 +1,30 @@
 package com.elsasa.btrade3.repository
 
+import android.content.Context
 import android.util.Log
 import com.elsasa.btrade3.model.Barang
 import com.elsasa.btrade3.model.Customer
 import com.elsasa.btrade3.model.SalesPerson
 import com.elsasa.btrade3.network.ApiService
+import com.elsasa.btrade3.util.ServerHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
 class NetworkRepository(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val serverHelper: ServerHelper
 ) {
     companion object {
         private const val TAG = "NetworkRepository"
     }
 
-    suspend fun fetchBarangs(): Result<List<Barang>> = withContext(Dispatchers.IO) {
+    suspend fun fetchBarangs(context: Context): Result<List<Barang>> = withContext(Dispatchers.IO) {
         try {
-            val response = apiService.getBarangs()
+            val serverId = serverHelper.getSelectedServer(context)
+            Log.d(TAG, "Fetching barangs for server: $serverId")
+            val response = apiService.getBarangs(serverId)
+            Log.d(TAG, "API Response received. Successful: ${response.isSuccessful}")
 
             if (response.isSuccessful) {
                 val apiResponse = response.body()

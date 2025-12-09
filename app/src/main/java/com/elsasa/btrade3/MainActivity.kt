@@ -1,9 +1,11 @@
 package com.elsasa.btrade3
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -12,8 +14,10 @@ import androidx.navigation.compose.rememberNavController
 import com.elsasa.btrade3.database.AppDatabase
 import com.elsasa.btrade3.ui.AppNavigation
 import com.elsasa.btrade3.ui.theme.BTrade3Theme
+import com.elsasa.btrade3.util.ServerHelper
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -29,6 +33,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SalesOrderApp() {
     val navController = rememberNavController()

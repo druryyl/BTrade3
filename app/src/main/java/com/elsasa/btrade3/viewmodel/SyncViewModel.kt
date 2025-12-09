@@ -1,5 +1,6 @@
 package com.elsasa.btrade3.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elsasa.btrade3.repository.SyncRepository
@@ -15,11 +16,11 @@ class SyncViewModel(
     private val _syncState = MutableStateFlow<SyncRepository.SyncResult>(SyncRepository.SyncResult.Loading)
     val syncState: StateFlow<SyncRepository.SyncResult> = _syncState.asStateFlow()
 
-    fun syncBarangs() {
+    fun syncBarangs(context: Context) {
         viewModelScope.launch {
             _syncState.value = SyncRepository.SyncResult.Loading
             try {
-                _syncState.value = syncRepository.syncBarangs()
+                _syncState.value = syncRepository.syncBarangs(context)
             } catch (e: Exception) {
                 _syncState.value = SyncRepository.SyncResult.Error("Sync failed: ${e.message}")
             }

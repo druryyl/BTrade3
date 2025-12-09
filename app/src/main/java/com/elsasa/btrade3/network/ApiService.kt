@@ -15,10 +15,13 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface ApiService {
-    @GET("Brg") // Adjust endpoint as needed
-    suspend fun getBarangs(): Response<BarangListResponse>
+//    @GET("Brg") // Adjust endpoint as needed
+//    suspend fun getBarangs(): Response<BarangListResponse>
+    @GET("Brg/{serverId}")
+    suspend fun getBarangs(@Path("serverId") serverId: String): Response<BarangListResponse>
 
     @GET("Customer") // Add this endpoint
     suspend fun getCustomers(): Response<CustomerListResponse>
