@@ -27,22 +27,22 @@ class SyncViewModel(
         }
     }
 
-    fun syncCustomers() {
+    fun syncCustomers(context: Context) {
         viewModelScope.launch {
             _syncState.value = SyncRepository.SyncResult.Loading
             try {
-                _syncState.value = syncRepository.syncCustomers()
+                _syncState.value = syncRepository.syncCustomers(context)
             } catch (e: Exception) {
                 _syncState.value = SyncRepository.SyncResult.Error("Sync failed: ${e.message}")
             }
         }
     }
 
-    fun syncSalesPersons() {
+    fun syncSalesPersons(context: Context) {
         viewModelScope.launch {
             _syncState.value = SyncRepository.SyncResult.Loading
             try {
-                _syncState.value = syncRepository.syncSalesPersons()
+                _syncState.value = syncRepository.syncSalesPersons(context)
             } catch (e: Exception) {
                 _syncState.value = SyncRepository.SyncResult.Error("Sync failed: ${e.message}")
             }

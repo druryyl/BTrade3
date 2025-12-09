@@ -60,10 +60,10 @@ class SyncRepository(
             SyncResult.Error(errorMessage)
         }
     }
-    suspend fun syncCustomers(): SyncResult = withContext(Dispatchers.IO) {
+    suspend fun syncCustomers(context: Context): SyncResult = withContext(Dispatchers.IO) {
         try {
             // Fetch data from API
-            val result = networkRepository.fetchCustomers()
+            val result = networkRepository.fetchCustomers(context)
             return@withContext result.fold(
                 onSuccess = { customers ->
                     if (customers.isEmpty()) {
@@ -104,10 +104,10 @@ class SyncRepository(
         }
     }
 
-    suspend fun syncSalesPersons(): SyncResult = withContext(Dispatchers.IO) {
+    suspend fun syncSalesPersons(context: Context): SyncResult = withContext(Dispatchers.IO) {
         try {
             // Fetch data from API
-            val result = networkRepository.fetchSalesPersons()
+            val result = networkRepository.fetchSalesPersons(context)
 
             return@withContext result.fold(
                 onSuccess = { salesPersons ->

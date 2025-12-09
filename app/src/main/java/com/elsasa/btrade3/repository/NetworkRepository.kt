@@ -22,9 +22,7 @@ class NetworkRepository(
     suspend fun fetchBarangs(context: Context): Result<List<Barang>> = withContext(Dispatchers.IO) {
         try {
             val serverId = serverHelper.getSelectedServer(context)
-            Log.d(TAG, "Fetching barangs for server: $serverId")
             val response = apiService.getBarangs(serverId)
-            Log.d(TAG, "API Response received. Successful: ${response.isSuccessful}")
 
             if (response.isSuccessful) {
                 val apiResponse = response.body()
@@ -49,9 +47,10 @@ class NetworkRepository(
         }
     }
 
-    suspend fun fetchCustomers(): Result<List<Customer>> = withContext(Dispatchers.IO) {
+    suspend fun fetchCustomers(context: Context): Result<List<Customer>> = withContext(Dispatchers.IO) {
         try {
-            val response = apiService.getCustomers()
+            val serverId = serverHelper.getSelectedServer(context)
+            val response = apiService.getCustomers(serverId)
 
             if (response.isSuccessful) {
                 val apiResponse = response.body()
@@ -76,9 +75,10 @@ class NetworkRepository(
         }
     }
     // Add this method to NetworkRepository for SalesPerson data
-    suspend fun fetchSalesPersons(): Result<List<SalesPerson>> = withContext(Dispatchers.IO) {
+    suspend fun fetchSalesPersons(context: Context): Result<List<SalesPerson>> = withContext(Dispatchers.IO) {
         try {
-            val response = apiService.getSalesPersons()
+            val serverId = serverHelper.getSelectedServer(context)
+            val response = apiService.getSalesPersons(serverId)
 
             if (response.isSuccessful) {
                 val apiResponse = response.body()
