@@ -1,10 +1,12 @@
 package com.elsasa.btrade3.repository
 
+import android.content.Context
 import android.util.Log
 import com.elsasa.btrade3.model.Order
 import com.elsasa.btrade3.model.api.OrderItemSyncDto
 import com.elsasa.btrade3.model.api.OrderSyncRequest
 import com.elsasa.btrade3.network.ApiService
+import com.elsasa.btrade3.util.ServerHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -13,7 +15,8 @@ import kotlinx.coroutines.withContext
 
 class OrderSyncRepository(
     private val apiService: ApiService,
-    private val orderRepository: OrderRepository
+    private val orderRepository: OrderRepository,
+    private val serverHelper: ServerHelper
 ) {
     companion object {
         private const val TAG = "OrderSyncRepository"
@@ -26,7 +29,7 @@ class OrderSyncRepository(
         object Loading : SyncResult()
     }
 
-    suspend fun syncDraftOrders(): SyncResult = withContext(Dispatchers.IO) {
+    suspend fun syncDraftOrders(context: Context): SyncResult = withContext(Dispatchers.IO) {
         try {
 
             // Get all draft orders
@@ -43,6 +46,7 @@ class OrderSyncRepository(
             draftOrders.forEachIndexed { index, order ->
                 try {
                     // Get order items
+                    val serverId = serverHelper.getSelectedServer(context)
                     val orderItems = orderRepository.getOrderItemsByOrderId(order.orderId).firstOrNull() ?: emptyList()
 
                     // Convert to sync DTO
@@ -83,7 +87,8 @@ class OrderSyncRepository(
                         totalAmount = order.totalAmount,
                         userEmail = order.userEmail,
                         listItem = orderItemDtos,
-                        orderNote = order.orderNote
+                        orderNote = order.orderNote,
+                        serverId = serverId
                     )
 
                     // Send to API
@@ -120,10 +125,10 @@ class OrderSyncRepository(
 
     // Bulk sync with progress tracking
     suspend fun syncDraftOrdersWithProgress(
-        onProgress: (SyncResult.Progress) -> Unit
+        onProgress: (SyncResult.Progress) -> Unit,
+        context: Context
     ): SyncResult = withContext(Dispatchers.IO) {
         try {
-            // Get all draft orders
             val draftOrders = orderRepository.getDraftOrders().firstOrNull() ?: emptyList()
 
             if (draftOrders.isEmpty()) {
@@ -142,7 +147,7 @@ class OrderSyncRepository(
                         orderCode = order.orderLocalId
                     ))
 
-                    syncSingleOrder(order)
+                    syncSingleOrder(order, context)
                 }
             }.awaitAll()
 
@@ -156,9 +161,10 @@ class OrderSyncRepository(
             SyncResult.Error("Sync failed: ${e.message}")
         }
     }
-    private suspend fun syncSingleOrder(order: Order): Boolean {
+    private suspend fun syncSingleOrder(order: Order, context: Context): Boolean {
         return try {
-            // Get order items
+
+            val serverId = serverHelper.getSelectedServer(context)
             val orderItems = orderRepository.getOrderItemsByOrderId(order.orderId).firstOrNull() ?: emptyList()
 
             // Convert to sync DTO
@@ -199,6 +205,7 @@ class OrderSyncRepository(
                 totalAmount = order.totalAmount,
                 userEmail = order.userEmail,
                 orderNote = order.orderNote,
+                serverId = serverId,
                 listItem = orderItemDtos
             )
 

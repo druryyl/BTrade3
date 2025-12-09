@@ -88,7 +88,7 @@ fun AppNavigation(
     val checkInRepository = CheckInRepository(database.checkInDao())
 
     val syncRepository = SyncRepository(networkRepository, barangRepository, customerRepository, salesPersonRepository)
-    val orderSyncRepository = OrderSyncRepository(apiService, orderRepository)
+    val orderSyncRepository = OrderSyncRepository(apiService, orderRepository, ServerHelper)
     val checkInSyncRepository = CheckInSyncRepository(apiService, checkInRepository, ServerHelper)
 
     val isLoggedIn = remember { checkIfUserIsLoggedIn(context) }

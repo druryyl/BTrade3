@@ -196,7 +196,7 @@ fun OrderSyncScreen(
 
             // Sync Button
             Button(
-                onClick = { viewModel.syncDraftOrdersWithProgress() },
+                onClick = { viewModel.syncDraftOrdersWithProgress(context) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),

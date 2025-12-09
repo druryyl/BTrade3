@@ -18,24 +18,13 @@ class OrderSyncViewModel(
     private val _syncState = MutableStateFlow<OrderSyncRepository.SyncResult>(OrderSyncRepository.SyncResult.Success("Ready to sync", 0))
     val syncState: StateFlow<OrderSyncRepository.SyncResult> = _syncState.asStateFlow()
 
-    fun syncDraftOrders() {
+    fun syncDraftOrdersWithProgress(context: Context) {
         viewModelScope.launch {
             _syncState.value = OrderSyncRepository.SyncResult.Loading
             try {
-                _syncState.value = orderSyncRepository.syncDraftOrders()
-            } catch (e: Exception) {
-                _syncState.value = OrderSyncRepository.SyncResult.Error("Sync failed: ${e.message}")
-            }
-        }
-    }
-
-    fun syncDraftOrdersWithProgress() {
-        viewModelScope.launch {
-            _syncState.value = OrderSyncRepository.SyncResult.Loading
-            try {
-                _syncState.value = orderSyncRepository.syncDraftOrdersWithProgress { progress ->
-                    _syncState.value = progress
-                }
+                _syncState.value = orderSyncRepository.syncDraftOrdersWithProgress(
+                    onProgress = { progress -> _syncState.value = progress},
+                    context = context)
             } catch (e: Exception) {
                 _syncState.value = OrderSyncRepository.SyncResult.Error("Sync failed: ${e.message}")
             }
