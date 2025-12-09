@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
@@ -35,6 +37,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material3.AlertDialog
@@ -71,6 +74,7 @@ import com.elsasa.btrade3.ui.component.SelectableModernOrderCard
 import com.elsasa.btrade3.ui.logoutUser
 import com.elsasa.btrade3.util.MapUtils
 import com.elsasa.btrade3.util.MovableFloatingActionButton
+import com.elsasa.btrade3.util.ServerHelper
 import com.elsasa.btrade3.viewmodel.OrderListViewModel
 import java.text.NumberFormat
 import java.util.Locale
@@ -95,6 +99,14 @@ fun OrderListScreen(
     // Search state
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
+
+    // Server information state
+    var selectedServer by remember { mutableStateOf<String?>(null) }
+
+    // Load selected server when screen is composed
+    LaunchedEffect(context) {
+        selectedServer = ServerHelper.getSelectedServer(context)
+    }
 
     // Filtered orders based on search
     val filteredOrders = remember(orders, searchQuery) {
@@ -221,14 +233,41 @@ fun OrderListScreen(
                     }
                 )
             } else {
-                // Normal mode top bar
+                // Normal mode top bar with server info
                 TopAppBar(
                     title = {
-                        Text(
-                            "Sales Orders",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Column(horizontalAlignment = Alignment.Start) {
+                            Text(
+                                "Sales Orders",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            // Server info row
+                            selectedServer?.let { server ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Storage,
+                                        contentDescription = "Server",
+                                        modifier = Modifier.size(12.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = when (server) {
+                                            "JOG" -> "Server: Jogja"
+                                            "MGL" -> "Server: Magelang"
+                                            else -> "Server: $server"
+                                        },
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                        }
                     },
                     actions = {
                         IconButton(onClick = { isSearchActive = true }) {
