@@ -38,6 +38,7 @@ import com.elsasa.btrade3.ui.screen.OrderSummaryScreen
 import com.elsasa.btrade3.ui.screen.OrderSyncScreen
 import com.elsasa.btrade3.ui.screen.SalesSelectionScreen
 import com.elsasa.btrade3.ui.screen.SyncScreen
+import com.elsasa.btrade3.util.ServerHelper
 import com.elsasa.btrade3.viewmodel.AddBarangViewModel
 import com.elsasa.btrade3.viewmodel.AddBarangViewModelFactory
 import com.elsasa.btrade3.viewmodel.BarangSelectionViewModel
@@ -77,17 +78,18 @@ fun AppNavigation(
         database.orderItemDao()
     )
     val apiService = NetworkModule.createApiService()
+    val networkRepository = NetworkRepository(apiService, ServerHelper)
 
     val barangRepository = BarangRepository(database.barangDao())
     val customerRepository = CustomerRepository(database.customerDao())
-    val customerSyncRepository = CustomerSyncRepository(apiService, customerRepository)
+    val customerSyncRepository = CustomerSyncRepository(apiService, customerRepository,
+        ServerHelper)
     val salesPersonRepository = SalesPersonRepository(database.salesPersonDao())
     val checkInRepository = CheckInRepository(database.checkInDao())
 
-    val networkRepository = NetworkRepository(apiService)
     val syncRepository = SyncRepository(networkRepository, barangRepository, customerRepository, salesPersonRepository)
-    val orderSyncRepository = OrderSyncRepository(apiService, orderRepository)
-    val checkInSyncRepository = CheckInSyncRepository(apiService, checkInRepository)
+    val orderSyncRepository = OrderSyncRepository(apiService, orderRepository, ServerHelper)
+    val checkInSyncRepository = CheckInSyncRepository(apiService, checkInRepository, ServerHelper)
 
     val isLoggedIn = remember { checkIfUserIsLoggedIn(context) }
 

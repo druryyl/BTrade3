@@ -1,5 +1,6 @@
 package com.elsasa.btrade3.repository
 
+import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,9 +22,9 @@ class SyncRepository(
         object Loading : SyncResult()
     }
 
-    suspend fun syncBarangs(): SyncResult = withContext(Dispatchers.IO) {
+    suspend fun syncBarangs(context: Context): SyncResult = withContext(Dispatchers.IO) {
         try {
-            val result = networkRepository.fetchBarangs()
+            val result = networkRepository.fetchBarangs(context)
 
             return@withContext result.fold(
                 onSuccess = { barangs ->
@@ -59,10 +60,10 @@ class SyncRepository(
             SyncResult.Error(errorMessage)
         }
     }
-    suspend fun syncCustomers(): SyncResult = withContext(Dispatchers.IO) {
+    suspend fun syncCustomers(context: Context): SyncResult = withContext(Dispatchers.IO) {
         try {
             // Fetch data from API
-            val result = networkRepository.fetchCustomers()
+            val result = networkRepository.fetchCustomers(context)
             return@withContext result.fold(
                 onSuccess = { customers ->
                     if (customers.isEmpty()) {
@@ -103,10 +104,10 @@ class SyncRepository(
         }
     }
 
-    suspend fun syncSalesPersons(): SyncResult = withContext(Dispatchers.IO) {
+    suspend fun syncSalesPersons(context: Context): SyncResult = withContext(Dispatchers.IO) {
         try {
             // Fetch data from API
-            val result = networkRepository.fetchSalesPersons()
+            val result = networkRepository.fetchSalesPersons(context)
 
             return@withContext result.fold(
                 onSuccess = { salesPersons ->

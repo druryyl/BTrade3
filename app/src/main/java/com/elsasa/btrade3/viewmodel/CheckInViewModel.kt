@@ -190,7 +190,7 @@ class CheckInViewModel(
                     customerAddress = selectedCust.alamat,
                     customerLatitude = selectedCust.latitude,
                     customerLongitude = selectedCust.longitude,
-                    statusSync = "DRAFT"
+                    statusSync = "DRAFT",
                 )
 
                 checkInRepository.insertCheckIn(checkIn)

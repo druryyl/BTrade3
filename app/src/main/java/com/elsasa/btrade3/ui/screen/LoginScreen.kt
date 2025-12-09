@@ -1,6 +1,5 @@
 package com.elsasa.btrade3.ui.screen
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -16,8 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -26,13 +23,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.elsasa.btrade3.R // Make sure you have this in your project
-import com.elsasa.btrade3.R.drawable.consumer_good_image2
-import com.elsasa.btrade3.util.GoogleSignInHelper // Assuming this is your existing helper class
-import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.elsasa.btrade3.R
+import com.elsasa.btrade3.util.GoogleSignInHelper
+import com.elsasa.btrade3.util.ServerHelper
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.ApiException
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -42,6 +43,36 @@ fun LoginScreen(
     val googleSignInHelper = remember { GoogleSignInHelper(context) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Server selection state - initialize with default value first
+    var selectedServer by remember { mutableStateOf("JOG") } // Default value
+    var serverOptions by remember { mutableStateOf(listOf<String>()) }
+    var isServerDataLoaded by remember { mutableStateOf(false) }
+
+    // Create a coroutine scope
+    val coroutineScope = rememberCoroutineScope()
+
+    // Load server data when composable is launched
+    LaunchedEffect(context) {
+        // Get the selected server from preferences
+        val savedServer = ServerHelper.getSelectedServer(context)
+        selectedServer = savedServer
+
+        // Initialize server options
+        serverOptions = listOf(
+            "JOG - Server Jogja",
+            "MGL - Server Magelang"
+        )
+
+        isServerDataLoaded = true
+    }
+
+    var expanded by remember { mutableStateOf(false) }
+
+    // Get the display text for the selected server
+    val selectedServerDisplay = serverOptions.find {
+        it.startsWith("${selectedServer} -")
+    } ?: "JOG - Server Jogja"
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -127,7 +158,85 @@ fun LoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Server Selection Dropdown
+            if (isServerDataLoaded) { // Only show when server data is loaded
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 48.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Select Server Target",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        ExposedDropdownMenuBox(
+                            expanded = expanded,
+                            onExpandedChange = { expanded = !expanded }
+                        ) {
+                            OutlinedTextField(
+                                value = selectedServerDisplay,
+                                onValueChange = {},
+                                readOnly = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true),
+                                label = { Text("Server") },
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                },
+                                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                            )
+
+                            ExposedDropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                serverOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option) },
+                                        onClick = {
+                                            val newServer = option.substring(0, 3) // Extract "JOG" or "MGL"
+                                            selectedServer = newServer
+                                            expanded = false
+
+                                            // Save the new server selection using the coroutine scope
+                                            coroutineScope.launch {
+                                                ServerHelper.setSelectedServer(context, newServer)
+                                            }
+                                        },
+                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Show loading indicator while server data is loading
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Google Sign-In Button
             GoogleSignInButton(
@@ -215,47 +324,47 @@ private fun GoogleSignInButton(
         }
     }
 }
-
-/**
- * Custom Composable for a Google-branded Sign-In Button.
- */
-@Composable
-fun GoogleSignInButton2(onClick: () -> Unit, isLoading: Boolean) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White,
-            contentColor = Color.Black
-        ),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
-        enabled = !isLoading
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-        } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                // **IMPORTANT: Replace with your Google logo drawable resource.**
-                Image(
-                    painter = painterResource(id = R.drawable.ic_google_logo),
-                    contentDescription = "Google Logo",
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = "Sign in with Google",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
-    }
-}
+//
+///**
+// * Custom Composable for a Google-branded Sign-In Button.
+// */
+//@Composable
+//fun GoogleSignInButton2(onClick: () -> Unit, isLoading: Boolean) {
+//    Button(
+//        onClick = onClick,
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(56.dp),
+//        colors = ButtonDefaults.buttonColors(
+//            containerColor = Color.White,
+//            contentColor = Color.Black
+//        ),
+//        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+//        enabled = !isLoading
+//    ) {
+//        if (isLoading) {
+//            CircularProgressIndicator(
+//                color = MaterialTheme.colorScheme.primary,
+//                modifier = Modifier.size(24.dp)
+//            )
+//        } else {
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.Center
+//            ) {
+//                // **IMPORTANT: Replace with your Google logo drawable resource.**
+//                Image(
+//                    painter = painterResource(id = R.drawable.ic_google_logo),
+//                    contentDescription = "Google Logo",
+//                    modifier = Modifier.size(24.dp)
+//                )
+//                Spacer(modifier = Modifier.width(16.dp))
+//                Text(
+//                    text = "Sign in with Google",
+//                    style = MaterialTheme.typography.bodyLarge,
+//                    fontWeight = FontWeight.Medium
+//                )
+//            }
+//        }
+//    }
+//}

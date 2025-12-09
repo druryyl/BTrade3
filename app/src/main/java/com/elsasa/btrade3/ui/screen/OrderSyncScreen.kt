@@ -196,7 +196,7 @@ fun OrderSyncScreen(
 
             // Sync Button
             Button(
-                onClick = { viewModel.syncDraftOrdersWithProgress() },
+                onClick = { viewModel.syncDraftOrdersWithProgress(context) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
@@ -227,7 +227,7 @@ fun OrderSyncScreen(
             Button(
                 onClick = {
                     // Use the passed userEmail directly
-                    viewModel.syncDraftCheckInsWithProgress(userEmail)
+                    viewModel.syncDraftCheckInsWithProgress(userEmail, context)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

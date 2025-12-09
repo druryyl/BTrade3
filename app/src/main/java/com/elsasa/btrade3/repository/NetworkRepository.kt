@@ -1,24 +1,28 @@
 package com.elsasa.btrade3.repository
 
+import android.content.Context
 import android.util.Log
 import com.elsasa.btrade3.model.Barang
 import com.elsasa.btrade3.model.Customer
 import com.elsasa.btrade3.model.SalesPerson
 import com.elsasa.btrade3.network.ApiService
+import com.elsasa.btrade3.util.ServerHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
 class NetworkRepository(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val serverHelper: ServerHelper
 ) {
     companion object {
         private const val TAG = "NetworkRepository"
     }
 
-    suspend fun fetchBarangs(): Result<List<Barang>> = withContext(Dispatchers.IO) {
+    suspend fun fetchBarangs(context: Context): Result<List<Barang>> = withContext(Dispatchers.IO) {
         try {
-            val response = apiService.getBarangs()
+            val serverId = serverHelper.getSelectedServer(context)
+            val response = apiService.getBarangs(serverId)
 
             if (response.isSuccessful) {
                 val apiResponse = response.body()
@@ -43,9 +47,10 @@ class NetworkRepository(
         }
     }
 
-    suspend fun fetchCustomers(): Result<List<Customer>> = withContext(Dispatchers.IO) {
+    suspend fun fetchCustomers(context: Context): Result<List<Customer>> = withContext(Dispatchers.IO) {
         try {
-            val response = apiService.getCustomers()
+            val serverId = serverHelper.getSelectedServer(context)
+            val response = apiService.getCustomers(serverId)
 
             if (response.isSuccessful) {
                 val apiResponse = response.body()
@@ -70,9 +75,10 @@ class NetworkRepository(
         }
     }
     // Add this method to NetworkRepository for SalesPerson data
-    suspend fun fetchSalesPersons(): Result<List<SalesPerson>> = withContext(Dispatchers.IO) {
+    suspend fun fetchSalesPersons(context: Context): Result<List<SalesPerson>> = withContext(Dispatchers.IO) {
         try {
-            val response = apiService.getSalesPersons()
+            val serverId = serverHelper.getSelectedServer(context)
+            val response = apiService.getSalesPersons(serverId)
 
             if (response.isSuccessful) {
                 val apiResponse = response.body()

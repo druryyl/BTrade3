@@ -1,5 +1,6 @@
 package com.elsasa.btrade3.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elsasa.btrade3.repository.CheckInSyncRepository
@@ -17,24 +18,13 @@ class OrderSyncViewModel(
     private val _syncState = MutableStateFlow<OrderSyncRepository.SyncResult>(OrderSyncRepository.SyncResult.Success("Ready to sync", 0))
     val syncState: StateFlow<OrderSyncRepository.SyncResult> = _syncState.asStateFlow()
 
-    fun syncDraftOrders() {
+    fun syncDraftOrdersWithProgress(context: Context) {
         viewModelScope.launch {
             _syncState.value = OrderSyncRepository.SyncResult.Loading
             try {
-                _syncState.value = orderSyncRepository.syncDraftOrders()
-            } catch (e: Exception) {
-                _syncState.value = OrderSyncRepository.SyncResult.Error("Sync failed: ${e.message}")
-            }
-        }
-    }
-
-    fun syncDraftOrdersWithProgress() {
-        viewModelScope.launch {
-            _syncState.value = OrderSyncRepository.SyncResult.Loading
-            try {
-                _syncState.value = orderSyncRepository.syncDraftOrdersWithProgress { progress ->
-                    _syncState.value = progress
-                }
+                _syncState.value = orderSyncRepository.syncDraftOrdersWithProgress(
+                    onProgress = { progress -> _syncState.value = progress},
+                    context = context)
             } catch (e: Exception) {
                 _syncState.value = OrderSyncRepository.SyncResult.Error("Sync failed: ${e.message}")
             }
@@ -42,11 +32,11 @@ class OrderSyncViewModel(
     }
 
     // Add this new method for Check-In sync
-    fun syncDraftCheckIns(userEmail: String) {
+    fun syncDraftCheckIns(userEmail: String, context: Context) {
         viewModelScope.launch {
             _syncState.value = OrderSyncRepository.SyncResult.Loading
             try {
-                val result = checkInSyncRepository.syncDraftCheckIns(userEmail)
+                val result = checkInSyncRepository.syncDraftCheckIns(userEmail, context)
                 _syncState.value = convertCheckInSyncResultToOrderSyncResult(result)
             } catch (e: Exception) {
                 _syncState.value = OrderSyncRepository.SyncResult.Error("Check-in sync failed: ${e.message}")
@@ -55,17 +45,18 @@ class OrderSyncViewModel(
     }
 
     // Add this new method for Check-In sync with progress
-    fun syncDraftCheckInsWithProgress(userEmail: String) {
+    fun syncDraftCheckInsWithProgress(userEmail: String, context: Context) {
         viewModelScope.launch {
             _syncState.value = OrderSyncRepository.SyncResult.Loading
             try {
-                val result = checkInSyncRepository.syncDraftCheckInsWithProgress(userEmail) { progress ->
+                val result = checkInSyncRepository.syncDraftCheckInsWithProgress(
+                    userEmail = userEmail,
+                    onProgress = { progress ->
                     _syncState.value = OrderSyncRepository.SyncResult.Progress(
                         current = progress.current,
                         total = progress.total,
-                        orderCode = progress.customerName
-                    )
-                }
+                        orderCode = progress.customerName)},
+                    context = context);
                 _syncState.value = convertCheckInSyncResultToOrderSyncResult(result)
             } catch (e: Exception) {
                 _syncState.value = OrderSyncRepository.SyncResult.Error("Check-in sync failed: ${e.message}")
