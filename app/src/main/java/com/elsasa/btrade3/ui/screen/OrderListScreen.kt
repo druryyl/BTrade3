@@ -392,7 +392,7 @@ fun OverflowMenu(
                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) }
             )
             DropdownMenuItem(
-                text = { Text("Sync Data") },
+                text = { Text("Sync Master Data") },
                 onClick = {
                     navController.navigate("sync")
                     expanded = false
@@ -400,7 +400,7 @@ fun OverflowMenu(
                 leadingIcon = { Icon(Icons.Default.Sync, contentDescription = null) }
             )
             DropdownMenuItem(
-                text = { Text("Sync Orders") },
+                text = { Text("Sync Transaction") },
                 onClick = {
                     navController.navigate("order_sync")
                     expanded = false

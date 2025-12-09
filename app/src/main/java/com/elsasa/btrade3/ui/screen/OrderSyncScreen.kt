@@ -47,7 +47,7 @@ fun OrderSyncScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Sync Orders") },
+                title = { Text("Sync Transaction") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
