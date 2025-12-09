@@ -3,6 +3,7 @@ package com.elsasa.btrade3.network
 import com.elsasa.btrade3.model.CheckIn
 import com.elsasa.btrade3.model.api.ApiResponse
 import com.elsasa.btrade3.model.api.BarangListResponse
+import com.elsasa.btrade3.model.api.CheckInRequest
 import com.elsasa.btrade3.model.api.CheckInSyncResponse
 import com.elsasa.btrade3.model.api.CustomerListResponse
 import com.elsasa.btrade3.model.api.CustomerSyncRequest
@@ -34,5 +35,5 @@ interface ApiService {
     suspend fun syncCustomerLocation(@Body customerRequest: CustomerSyncRequest): Response<CustomerSyncResponse>
 
     @POST("CheckIn")
-    suspend fun syncCheckIn(@Body checkInRequest: CheckIn): Response<CheckInSyncResponse>
+    suspend fun syncCheckIn(@Body checkInRequest: CheckInRequest): Response<CheckInSyncResponse>
 }

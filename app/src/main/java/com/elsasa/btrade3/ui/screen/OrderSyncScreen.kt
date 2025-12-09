@@ -227,7 +227,7 @@ fun OrderSyncScreen(
             Button(
                 onClick = {
                     // Use the passed userEmail directly
-                    viewModel.syncDraftCheckInsWithProgress(userEmail)
+                    viewModel.syncDraftCheckInsWithProgress(userEmail, context)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

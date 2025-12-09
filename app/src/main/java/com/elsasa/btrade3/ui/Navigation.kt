@@ -89,7 +89,7 @@ fun AppNavigation(
 
     val syncRepository = SyncRepository(networkRepository, barangRepository, customerRepository, salesPersonRepository)
     val orderSyncRepository = OrderSyncRepository(apiService, orderRepository)
-    val checkInSyncRepository = CheckInSyncRepository(apiService, checkInRepository)
+    val checkInSyncRepository = CheckInSyncRepository(apiService, checkInRepository, ServerHelper)
 
     val isLoggedIn = remember { checkIfUserIsLoggedIn(context) }
 

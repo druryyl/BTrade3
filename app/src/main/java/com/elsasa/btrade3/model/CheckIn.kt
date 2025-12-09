@@ -20,5 +20,5 @@ data class CheckIn(
     val customerAddress: String,
     val customerLatitude: Double,
     val customerLongitude: Double,
-    val statusSync: String          // "DRAFT" initially
+    val statusSync: String
 )

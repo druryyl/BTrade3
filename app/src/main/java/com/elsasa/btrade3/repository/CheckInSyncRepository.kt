@@ -1,15 +1,20 @@
 package com.elsasa.btrade3.repository
 
+import android.content.Context
 import android.util.Log
+import com.elsasa.btrade3.model.api.CheckInRequest
 import com.elsasa.btrade3.network.ApiService
+import com.elsasa.btrade3.util.ServerHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlin.String
 
 class CheckInSyncRepository(
     private val apiService: ApiService,
-    private val checkInRepository: CheckInRepository
+    private val checkInRepository: CheckInRepository,
+    private val serverHelper: ServerHelper
 ) {
     companion object {
         private const val TAG = "CheckInSyncRepository"
@@ -22,13 +27,13 @@ class CheckInSyncRepository(
         object Loading : SyncResult()
     }
 
-    suspend fun syncDraftCheckIns(userEmail: String): SyncResult = withContext(Dispatchers.IO) {
+    suspend fun syncDraftCheckIns(userEmail: String, context: Context): SyncResult = withContext(Dispatchers.IO)  {
         try {
             Log.d(TAG, "Starting draft check-ins sync...")
+            val serverId = serverHelper.getSelectedServer(context)
 
             // Get all draft check-ins
             val draftCheckIns = checkInRepository.getDraftCheckIns().firstOrNull() ?: emptyList()
-
             if (draftCheckIns.isEmpty()) {
                 return@withContext SyncResult.Success("No draft check-ins to sync", 0)
             }
@@ -41,7 +46,24 @@ class CheckInSyncRepository(
                 Log.d(TAG, "Syncing check-in ${index + 1}/$totalCheckIns: ${checkIn.customerName}")
 
                 try {
-                    val response = apiService.syncCheckIn(checkIn)
+                    val checkInReq = CheckInRequest(
+                        checkInId = checkIn.checkInId,
+                        checkInDate = checkIn.checkInDate,
+                        checkInTime = checkIn.checkInTime,        // HH:mm:ss
+                        userEmail = checkIn.userEmail,
+                        checkInLatitude = checkIn.checkInLatitude,
+                        checkInLongitude = checkIn.checkInLongitude,
+                        accuracy = checkIn.accuracy,
+                        customerId = checkIn.customerId,
+                        customerCode = checkIn.customerCode,
+                        customerName = checkIn.customerName,
+                        customerAddress = checkIn.customerAddress,
+                        customerLatitude = checkIn.customerLatitude,
+                        customerLongitude = checkIn.customerLongitude,
+                        statusSync = checkIn.statusSync,
+                        serverId = serverId
+                    )
+                    val response = apiService.syncCheckIn(checkInReq)
 
                     if (response.isSuccessful) {
                         val apiResponse = response.body()
@@ -76,11 +98,12 @@ class CheckInSyncRepository(
     // Bulk sync with progress tracking
     suspend fun syncDraftCheckInsWithProgress(
         userEmail: String,
-        onProgress: (SyncResult.Progress) -> Unit
+        onProgress: (SyncResult.Progress) -> Unit,
+        context: Context
     ): SyncResult = withContext(Dispatchers.IO) {
         try {
             Log.d(TAG, "Starting draft check-ins sync with progress...")
-
+            val serverId = serverHelper.getSelectedServer(context)
             // Get all draft check-ins
             val draftCheckIns = checkInRepository.getDraftCheckIns().firstOrNull() ?: emptyList()
 
@@ -100,7 +123,24 @@ class CheckInSyncRepository(
                 ))
 
                 try {
-                    val response = apiService.syncCheckIn(checkIn)
+                    val checkInReq = CheckInRequest(
+                        checkInId = checkIn.checkInId,
+                        checkInDate = checkIn.checkInDate,
+                        checkInTime = checkIn.checkInTime,        // HH:mm:ss
+                        userEmail = checkIn.userEmail,
+                        checkInLatitude = checkIn.checkInLatitude,
+                        checkInLongitude = checkIn.checkInLongitude,
+                        accuracy = checkIn.accuracy,
+                        customerId = checkIn.customerId,
+                        customerCode = checkIn.customerCode,
+                        customerName = checkIn.customerName,
+                        customerAddress = checkIn.customerAddress,
+                        customerLatitude = checkIn.customerLatitude,
+                        customerLongitude = checkIn.customerLongitude,
+                        statusSync = checkIn.statusSync,
+                        serverId = serverId
+                    )
+                    val response = apiService.syncCheckIn(checkInReq)
 
                     if (response.isSuccessful) {
                         val apiResponse = response.body()
