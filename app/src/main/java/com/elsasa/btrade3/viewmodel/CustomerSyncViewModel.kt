@@ -1,6 +1,7 @@
 package com.elsasa.btrade3.viewmodel
 
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elsasa.btrade3.repository.CustomerSyncRepository
@@ -18,13 +19,15 @@ class CustomerSyncViewModel(
     )
     val syncState: StateFlow<CustomerSyncRepository.SyncResult> = _syncState.asStateFlow()
 
-    fun syncCustomerLocations(userEmail: String) {
+    fun syncCustomerLocations(userEmail: String, context: Context) {
         viewModelScope.launch {
             _syncState.value = CustomerSyncRepository.SyncResult.Loading
             try {
-                _syncState.value = customerSyncRepository.syncUpdatedCustomersWithProgress(userEmail) { progress ->
-                    _syncState.value = progress
-                }
+                _syncState.value = customerSyncRepository.syncUpdatedCustomersWithProgress(
+                    userEmail = userEmail,
+                    onProgress ={ progress -> _syncState.value = progress},
+                    context = context
+                    )
             } catch (e: Exception) {
                 _syncState.value = CustomerSyncRepository.SyncResult.Error("Sync failed: ${e.message}")
             }

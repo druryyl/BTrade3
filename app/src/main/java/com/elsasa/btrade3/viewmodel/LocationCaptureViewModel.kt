@@ -235,7 +235,7 @@ class LocationCaptureViewModel(
 
                 // Sync the updated location to cloud
                 try {
-                    val syncResult = customerSyncRepository.syncUpdatedCustomers(userEmail)
+                    val syncResult = customerSyncRepository.syncUpdatedCustomers(userEmail, context)
                     // Handle sync result if needed (show toast, log, etc.)
                 } catch (e: Exception) {
                     // Handle sync error - location is still saved locally

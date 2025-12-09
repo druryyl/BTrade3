@@ -1,16 +1,20 @@
 package com.elsasa.btrade3.repository
 
 
+import android.content.Context
 import android.util.Log
 import com.elsasa.btrade3.model.api.CustomerSyncRequest
 import com.elsasa.btrade3.network.ApiService
+import com.elsasa.btrade3.util.ServerHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 class CustomerSyncRepository(
     private val apiService: ApiService,
-    private val customerRepository: CustomerRepository
+    private val customerRepository: CustomerRepository,
+    private val serverHelper: ServerHelper // Add ServerHelper dependency
+
 ) {
     companion object {
         private const val TAG = "CustomerSyncRepository"
@@ -23,8 +27,9 @@ class CustomerSyncRepository(
         object Loading : SyncResult()
     }
 
-    suspend fun syncUpdatedCustomers(userEmail: String): SyncResult = withContext(Dispatchers.IO) {
+    suspend fun syncUpdatedCustomers(userEmail: String, context: Context): SyncResult = withContext(Dispatchers.IO) {
         try {
+            val serverId = serverHelper.getSelectedServer(context)
             // Get all customers with isUpdated = true
             val updatedCustomers = customerRepository.getAllCustomer().first()
                 .filter { it.isUpdated }
@@ -47,7 +52,8 @@ class CustomerSyncRepository(
                         longitude = customer.longitude,
                         accuracy = customer.accuracy,
                         coordinateTimeStamp = customer.locationTimestamp,
-                        coordinateUser = userEmail
+                        coordinateUser = userEmail,
+                        serverId = serverId
                     )
 
                     val response = apiService.syncCustomerLocation(syncRequest)
@@ -80,9 +86,11 @@ class CustomerSyncRepository(
     // Bulk sync with progress tracking
     suspend fun syncUpdatedCustomersWithProgress(
         userEmail: String,
-        onProgress: (SyncResult.Progress) -> Unit
+        onProgress: (SyncResult.Progress) -> Unit,
+        context: Context
     ): SyncResult = withContext(Dispatchers.IO) {
         try {
+            val serverId = serverHelper.getSelectedServer(context)
             // Get all customers with isUpdated = true
             val updatedCustomers = customerRepository.getAllCustomer().first()
                 .filter { it.isUpdated }
@@ -109,7 +117,8 @@ class CustomerSyncRepository(
                         longitude = customer.longitude,
                         accuracy = customer.accuracy,
                         coordinateTimeStamp = customer.locationTimestamp,
-                        coordinateUser = userEmail
+                        coordinateUser = userEmail,
+                        serverId = serverId
                     )
 
                     val response = apiService.syncCustomerLocation(syncRequest)

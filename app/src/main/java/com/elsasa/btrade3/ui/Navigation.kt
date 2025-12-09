@@ -82,7 +82,8 @@ fun AppNavigation(
 
     val barangRepository = BarangRepository(database.barangDao())
     val customerRepository = CustomerRepository(database.customerDao())
-    val customerSyncRepository = CustomerSyncRepository(apiService, customerRepository)
+    val customerSyncRepository = CustomerSyncRepository(apiService, customerRepository,
+        ServerHelper)
     val salesPersonRepository = SalesPersonRepository(database.salesPersonDao())
     val checkInRepository = CheckInRepository(database.checkInDao())
 

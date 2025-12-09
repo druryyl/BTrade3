@@ -7,5 +7,6 @@ data class CustomerSyncRequest(
     val longitude: Double,
     val accuracy: Float,
     val coordinateTimeStamp: Long,
-    val coordinateUser: String
+    val coordinateUser: String,
+    val serverId: String
 )
