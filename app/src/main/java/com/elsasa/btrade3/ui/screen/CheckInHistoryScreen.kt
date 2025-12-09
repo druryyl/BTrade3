@@ -4,10 +4,15 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.NavigateBefore
@@ -17,12 +22,14 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.NavigateBefore
 import androidx.compose.material.icons.filled.NavigateNext
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -56,23 +63,38 @@ fun CheckInHistoryScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Check-In History") },
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Check-In History",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // Date Filter Card
-            DateFilterCard(
+            // Modern Date Filter Card
+            ModernDateFilterCard(
                 selectedDate = selectedDate,
                 checkInCounts = checkInCounts,
                 onDateSelected = { viewModel.setSelectedDate(it) },
@@ -81,8 +103,6 @@ fun CheckInHistoryScreen(
                 context = context
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
             if (isLoading) {
                 Box(
                     modifier = Modifier
@@ -90,7 +110,11 @@ fun CheckInHistoryScreen(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 3.dp,
+                        modifier = Modifier.size(48.dp)
+                    )
                 }
             } else if (filteredCheckIns.isEmpty()) {
                 Box(
@@ -100,35 +124,42 @@ fun CheckInHistoryScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(24.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "No Check-ins",
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Card(
+                            shape = CircleShape,
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            ),
+                            modifier = Modifier.size(96.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "No Check-ins",
+                                    modifier = Modifier.size(48.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
                         Text(
                             text = if (selectedDate.isNotEmpty()) "No check-ins for selected date" else "No check-in history found",
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                        if (selectedDate.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Date: $selectedDate",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        } else {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Start checking in to see your history here",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = if (selectedDate.isNotEmpty()) "Date: $selectedDate" else "Start checking in to see your history here",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             } else {
@@ -136,13 +167,13 @@ fun CheckInHistoryScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .weight(1f),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     itemsIndexed(filteredCheckIns) { index, checkIn ->
                         // Calculate sequential number in descending order (most recent first = higher number)
                         val sequentialNumber = filteredCheckIns.size - index
-                        CheckInHistoryCard(
+                        ModernCheckInHistoryCard(
                             checkIn = checkIn,
                             sequentialNumber = sequentialNumber,
                             onOpenInMap = { checkIn ->
@@ -166,7 +197,7 @@ fun CheckInHistoryScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateFilterCard(
+fun ModernDateFilterCard(
     selectedDate: String,
     checkInCounts: Map<String, Int>,
     onDateSelected: (String) -> Unit,
@@ -177,21 +208,61 @@ fun DateFilterCard(
     var showDatePicker by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = "Filter by Date",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Filter by Date",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                if (selectedDate.isNotEmpty()) {
+                    val count = checkInCounts[selectedDate] ?: 0
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "Check-ins",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "$count check-ins",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -200,58 +271,73 @@ fun DateFilterCard(
             ) {
                 IconButton(
                     onClick = onPreviousDay,
-                    enabled = selectedDate.isNotEmpty()
+                    enabled = selectedDate.isNotEmpty(),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            color = if (selectedDate.isNotEmpty())
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                            else
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            shape = CircleShape
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Default.NavigateBefore,
                         contentDescription = "Previous Day",
-                        tint = if (selectedDate.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (selectedDate.isNotEmpty())
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                     )
                 }
 
-                OutlinedButton(
+                OutlinedCard(
                     onClick = { showDatePicker = true },
                     modifier = Modifier
                         .weight(1f)
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.outlinedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
                 ) {
-                    Text(
-                        text = if (selectedDate.isNotEmpty()) selectedDate else "Select Date",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (selectedDate.isNotEmpty()) selectedDate else "Select Date",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 IconButton(
                     onClick = onNextDay,
-                    enabled = selectedDate.isNotEmpty()
+                    enabled = selectedDate.isNotEmpty(),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            color = if (selectedDate.isNotEmpty())
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                            else
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            shape = CircleShape
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Default.NavigateNext,
                         contentDescription = "Next Day",
-                        tint = if (selectedDate.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Display check-in count for selected date
-            if (selectedDate.isNotEmpty()) {
-                val count = checkInCounts[selectedDate] ?: 0
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = "Check-ins",
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Check-ins today: $count",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium
+                        tint = if (selectedDate.isNotEmpty())
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                     )
                 }
             }
@@ -259,9 +345,7 @@ fun DateFilterCard(
     }
 
     // Date Picker Dialog
-    // Date Picker Dialog
     if (showDatePicker) {
-        // Create and remember the DatePickerState
         val datePickerState = rememberDatePickerState()
 
         DatePickerDialog(
@@ -269,7 +353,6 @@ fun DateFilterCard(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // Get the selected date from the state, format it, and pass it up
                         datePickerState.selectedDateMillis?.let { millis ->
                             val formattedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(millis))
                             onDateSelected(formattedDate)
@@ -288,25 +371,33 @@ fun DateFilterCard(
                 }
             }
         ) {
-            // The DatePicker now takes the state object
             DatePicker(state = datePickerState)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CheckInHistoryCard(
+fun ModernCheckInHistoryCard(
     checkIn: CheckIn,
-    sequentialNumber: Int, // New parameter for sequential numbering (descending order)
+    sequentialNumber: Int,
     onOpenInMap: (CheckIn) -> Unit,
     onDelete: (CheckIn) -> Unit
 ) {
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        onClick = { expanded = !expanded }
     ) {
         Column(
             modifier = Modifier
@@ -322,25 +413,49 @@ fun CheckInHistoryCard(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "#$sequentialNumber",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = checkIn.customerName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = "#$sequentialNumber",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = checkIn.customerName,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Code: ${checkIn.customerCode}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 // Action Buttons
                 Row {
                     IconButton(
                         onClick = { onOpenInMap(checkIn) },
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                shape = CircleShape
+                            )
                     ) {
                         Icon(
                             imageVector = Icons.Default.Map,
@@ -349,9 +464,16 @@ fun CheckInHistoryCard(
                         )
                     }
 
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     IconButton(
                         onClick = { showDeleteDialog = true },
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                                shape = CircleShape
+                            )
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -362,88 +484,134 @@ fun CheckInHistoryCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Code: ${checkIn.customerCode}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Address
-            Text(
-                text = checkIn.customerAddress,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
+            Row(
+                verticalAlignment = Alignment.Top
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Address",
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = checkIn.customerAddress,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = if (expanded) 5 else 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Date and Time
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    Text(
-                        text = "Date: ${checkIn.checkInDate}",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Schedule,
+                        contentDescription = "Date",
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Text(
-                        text = "Time: ${checkIn.checkInTime}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            text = checkIn.checkInDate,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = checkIn.checkInTime,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
-                Column(horizontalAlignment = Alignment.End) {
+                // Status Badge
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (checkIn.statusSync == "DRAFT") {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.primaryContainer
+                    }
+                ) {
                     Text(
-                        text = "Accuracy: ±${checkIn.accuracy.roundToInt()}m",
+                        text = checkIn.statusSync,
                         style = MaterialTheme.typography.bodySmall,
-                        color = when (checkIn.accuracy) {
-                            in 0f..10f -> MaterialTheme.colorScheme.primary
-                            in 11f..50f -> MaterialTheme.colorScheme.secondary
-                            else -> MaterialTheme.colorScheme.error
-                        }
-                    )
-                    Text(
-                        text = "Lat: ${checkIn.checkInLatitude}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "Lng: ${checkIn.checkInLongitude}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        fontWeight = FontWeight.Medium,
+                        color = if (checkIn.statusSync == "DRAFT") {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        },
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            // Additional details shown when expanded
+            if (expanded) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Divider(
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+                Spacer(modifier = Modifier.height(12.dp))
 
-            // Status
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Status: ",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = checkIn.statusSync,
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                    color = if (checkIn.statusSync == "DRAFT") {
-                        MaterialTheme.colorScheme.secondary
-                    } else {
-                        MaterialTheme.colorScheme.primary
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = "Location Details",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Accuracy: ±${checkIn.accuracy.roundToInt()}m",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = when (checkIn.accuracy) {
+                                in 0f..10f -> MaterialTheme.colorScheme.primary
+                                in 11f..50f -> MaterialTheme.colorScheme.secondary
+                                else -> MaterialTheme.colorScheme.error
+                            }
+                        )
                     }
-                )
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "Coordinates",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Lat: ${checkIn.checkInLatitude}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Lng: ${checkIn.checkInLongitude}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }
@@ -452,13 +620,42 @@ fun CheckInHistoryCard(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Check-In") },
-            text = {
+            title = {
                 Text(
-                    "Are you sure you want to delete this check-in?\n\n" +
-                            "${checkIn.customerName}\n" +
-                            "${checkIn.checkInDate} ${checkIn.checkInTime}"
+                    text = "Delete Check-In",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
                 )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Are you sure you want to delete this check-in?",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp)
+                        ) {
+                            Text(
+                                text = checkIn.customerName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Text(
+                                text = "${checkIn.checkInDate} ${checkIn.checkInTime}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                }
             },
             confirmButton = {
                 TextButton(
@@ -467,7 +664,11 @@ fun CheckInHistoryCard(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text = "Delete",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             dismissButton = {
