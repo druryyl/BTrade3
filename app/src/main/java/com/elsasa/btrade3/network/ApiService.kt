@@ -10,6 +10,7 @@ import com.elsasa.btrade3.model.api.CustomerSyncRequest
 import com.elsasa.btrade3.model.api.CustomerSyncResponse
 import com.elsasa.btrade3.model.api.OrderSyncRequest
 import com.elsasa.btrade3.model.api.OrderSyncResponse
+import com.elsasa.btrade3.model.api.SalesPersonExistsResponse
 import com.elsasa.btrade3.model.api.SalesPersonListResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -17,6 +18,7 @@ import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
     @GET("Brg/{serverId}")
@@ -27,6 +29,9 @@ interface ApiService {
 
     @GET("SalesPerson/{serverId}") // Add this endpoint
     suspend fun getSalesPersons(@Path("serverId") serverId: String): Response<SalesPersonListResponse>
+
+    @GET("SalesPerson/exists")
+    suspend fun checkEmailExists(@Query("email") email: String): Response<SalesPersonExistsResponse>
 
     @POST("Order") // Add this endpoint for order sync
     suspend fun syncOrder(@Body orderRequest: OrderSyncRequest): Response<OrderSyncResponse>

@@ -7,3 +7,15 @@ data class SalesPersonListResponse(
     val code: String,
     val data: List<SalesPerson>
 )
+
+data class SalesPersonExistsData(
+    val email: String,
+    val isValid: Int
+)
+
+data class SalesPersonExistsResponse(
+    val status: String,
+    val code: String,
+    val data: SalesPersonExistsData
+)
+
