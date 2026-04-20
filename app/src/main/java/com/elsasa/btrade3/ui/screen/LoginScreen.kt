@@ -59,6 +59,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.elsasa.btrade3.R
+import com.elsasa.btrade3.network.NetworkModule
 import com.elsasa.btrade3.util.GoogleSignInHelper
 import com.elsasa.btrade3.util.ServerHelper
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -101,7 +102,6 @@ fun LoginScreen(
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        isLoading = false
         if (result.resultCode == Activity.RESULT_OK) {
             try {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
@@ -109,16 +109,44 @@ fun LoginScreen(
                 val email = account.email
 
                 if (email != null) {
-                    onUserSignedIn(email)
-                    navController.navigate("faktur_list") {
-                        popUpTo("login") { inclusive = true }
+                    // Keep isLoading = true while validating
+                    scope.launch {
+                        try {
+                            val apiService = NetworkModule.createApiService()
+                            val response = apiService.checkEmailExists(email)
+                            if (response.isSuccessful) {
+                                val isValid = response.body()?.data?.isValid
+                                if (isValid == 1) {
+                                    onUserSignedIn(email)
+                                    navController.navigate("faktur_list") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                } else {
+                                    googleSignInHelper.signOut()
+                                    errorMessage = "Akun '$email' tidak terdaftar. Hubungi administrator."
+                                    isLoading = false
+                                }
+                            } else {
+                                googleSignInHelper.signOut()
+                                errorMessage = "Validasi gagal (${response.code()}). Coba lagi."
+                                isLoading = false
+                            }
+                        } catch (e: Exception) {
+                            googleSignInHelper.signOut()
+                            errorMessage = "Tidak dapat terhubung ke server. Periksa koneksi internet."
+                            isLoading = false
+                        }
                     }
                 } else {
                     errorMessage = "Failed to retrieve email"
+                    isLoading = false
                 }
             } catch (e: ApiException) {
                 errorMessage = "Google Sign-In failed (${e.statusCode})"
+                isLoading = false
             }
+        } else {
+            isLoading = false
         }
     }
 
