@@ -46,6 +46,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.collect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,8 +77,11 @@ fun LoginScreen(
     context: Context = LocalContext.current
 ) {
     val googleSignInHelper = remember { GoogleSignInHelper(context) }
-    var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // ViewModel that will handle email validation
+    val loginViewModel: com.elsasa.btrade3.ui.login.LoginViewModel = viewModel()
+    val uiState by loginViewModel.uiState.collectAsState()
 
     // Server selection
     var selectedServer by remember { mutableStateOf("JOG") }
@@ -101,7 +107,6 @@ fun LoginScreen(
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        isLoading = false
         if (result.resultCode == Activity.RESULT_OK) {
             try {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
@@ -109,10 +114,8 @@ fun LoginScreen(
                 val email = account.email
 
                 if (email != null) {
-                    onUserSignedIn(email)
-                    navController.navigate("faktur_list") {
-                        popUpTo("login") { inclusive = true }
-                    }
+                    // delegate validation to ViewModel; navigation will occur when authorized
+                    loginViewModel.validateEmail(email)
                 } else {
                     errorMessage = "Failed to retrieve email"
                 }
@@ -269,11 +272,47 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 32.dp)
                     .height(52.dp),
-                isLoading = isLoading
+                isLoading = uiState is com.elsasa.btrade3.ui.login.LoginUiState.SigningIn || uiState is com.elsasa.btrade3.ui.login.LoginUiState.Validating
             ) {
-                isLoading = true
+                // inform ViewModel we started sign-in (controls loading state)
+                loginViewModel.onStartSigningIn()
                 errorMessage = null
                 launcher.launch(googleSignInHelper.getSignInIntent())
+            }
+
+            // React to ViewModel state changes (navigation / error handling)
+            LaunchedEffect(uiState) {
+                when (val s = uiState) {
+                    is com.elsasa.btrade3.ui.login.LoginUiState.Authorized -> {
+                        // successful validation: proceed to main screen
+                        onUserSignedIn(s.email)
+                        navController.navigate("faktur_list") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                        // reset VM state
+                        loginViewModel.reset()
+                    }
+                    is com.elsasa.btrade3.ui.login.LoginUiState.Unauthorized -> {
+                        // sign out to avoid leaving Google account in signed-in state
+                        try {
+                            googleSignInHelper.signOut()
+                        } catch (_: Exception) {
+                            // ignore sign out errors
+                        }
+                        errorMessage = "Access denied: ${s.reason ?: "Your account is not registered to use this app."}"
+                        loginViewModel.reset()
+                    }
+                    is com.elsasa.btrade3.ui.login.LoginUiState.Error -> {
+                        errorMessage = s.message
+                        loginViewModel.reset()
+                    }
+                    else -> {
+                        // Idle / SigningIn / Validating handled by isLoading above
+                        if (uiState is com.elsasa.btrade3.ui.login.LoginUiState.Idle) {
+                            errorMessage = null
+                        }
+                    }
+                }
             }
 
             // Error Message
