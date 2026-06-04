@@ -121,6 +121,14 @@ class LocationCaptureViewModel(
             return
         }
 
+        // Prevent capturing a new location if an original (registered) location already exists
+        if (_originalLocation.value != null) {
+            // Keep state as locked to indicate a stored location is in use
+            _locationStatus.value = LocationStatus.LOCKED
+            _isLoading.value = false
+            return
+        }
+
         _isLoading.value = true
         _locationStatus.value = LocationStatus.ACQUIRING
         _address.value = null
@@ -223,6 +231,16 @@ class LocationCaptureViewModel(
         val currentLocation = _location.value
         if (currentLocation != null) {
             viewModelScope.launch {
+                // Double-check stored customer: do not overwrite if a registered location already exists
+                val storedCustomer = customerRepository.getCustomerById(customerId)
+                if (storedCustomer != null &&
+                    storedCustomer.latitude != 0.0 && storedCustomer.longitude != 0.0 &&
+                    !storedCustomer.latitude.isNaN() && !storedCustomer.longitude.isNaN()) {
+                    // There's already a registered location; do not overwrite from the app UI.
+                    _locationStatus.value = LocationStatus.LOCKED
+                    return@launch
+                }
+
                 // Update customer location in local database with isUpdated = true
                 customerRepository.updateCustomerLocation(
                     customerId = customerId,

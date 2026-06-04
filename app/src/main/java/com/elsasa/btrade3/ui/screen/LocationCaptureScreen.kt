@@ -143,7 +143,8 @@ fun LocationCaptureScreen(
                             navController.popBackStack()
                         },
                         modifier = Modifier.weight(1f),
-                        enabled = location != null
+                        // Only allow saving when we have a freshly captured location and there is no original stored location
+                        enabled = location != null && originalLocation == null
                     ) {
                         Text("Save Location")
                     }
@@ -404,6 +405,16 @@ fun StatusCard(
                     )
                 }
             }
+
+            // If there is an original stored location, make it explicit that editing is disabled
+            if (hasOriginalLocation) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Location already registered. Editing disabled.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -519,7 +530,8 @@ fun LocationPreviewCard(
             Button(
                 onClick = onCaptureClick,
                 modifier = Modifier.fillMaxWidth(),
-                enabled = canCapture
+                // Disable capture if user lacks permission or the customer already has a registered location
+                enabled = canCapture && !hasOriginalLocation
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationSearching,
